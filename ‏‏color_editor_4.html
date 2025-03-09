@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מדרג ירוק לפי ערכים</title>
+    <style>
+        table {
+            width: 80%;
+            border-collapse: collapse;
+            margin: 20px auto;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        td {
+            padding: 8px;
+            border: 1px solid black;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<table id="colorTable"></table>
+
+<script>
+const greenShades = [
+  { name: "ירוק כמעט לבן", hex: "#F0FFF0" },
+  { name: "ירוק בהיר מאוד", hex: "#C8FFC8" },
+  { name: "ירוק פסטלי", hex: "#96FF96" },
+  { name: "ירוק טבעי", hex: "#64FF64" },
+  { name: "ירוק רענן", hex: "#32FF32" },
+  { name: "ירוק דשא", hex: "#00E600" },
+  { name: "ירוק חי", hex: "#00C800" },
+  { name: "ירוק חזק", hex: "#00A000" },
+  { name: "ירוק כהה", hex: "#007A00" },
+  { name: "ירוק עמוק מאוד", hex: "#005000" }
+];
+const redShades = [
+  { name: "אדום כמעט לבן", hex: "#FFF0F0" },
+  { name: "אדום בהיר מאוד", hex: "#FFC8C8" },
+  { name: "אדום פסטלי", hex: "#FF9696" },
+  { name: "אדום טבעי", hex: "#FF6464" },
+  { name: "אדום רענן", hex: "#FF3232" },
+  { name: "אדום דובדבן", hex: "#E60000" },
+  { name: "אדום חי", hex: "#C80000" },
+  { name: "אדום חזק", hex: "#A00000" },
+  { name: "אדום כהה", hex: "#7A0000" },
+  { name: "אדום עמוק מאוד", hex: "#500000" }
+];
+const yellowShades = [
+  { name: "צהוב כמעט לבן", hex: "#FFFFF0" },
+  { name: "צהוב בהיר מאוד", hex: "#FFFFC8" },
+  { name: "צהוב פסטלי", hex: "#FFFF96" },
+  { name: "צהוב טבעי", hex: "#FFFF64" },
+  { name: "צהוב רענן", hex: "#FFFF32" },
+  { name: "צהוב זהב", hex: "#E6E600" },
+  { name: "צהוב חי", hex: "#C8C800" },
+  { name: "צהוב חזק", hex: "#A0A000" },
+  { name: "צהוב כהה", hex: "#7A7A00" },
+  { name: "צהוב עמוק מאוד", hex: "#505000" }
+];
+const blueShades = [
+  { name: "כחול כמעט לבן", hex: "#F0F8FF" },
+  { name: "כחול בהיר מאוד", hex: "#C8E0FF" },
+  { name: "כחול פסטלי", hex: "#96C8FF" },
+  { name: "כחול שמיים", hex: "#64AFFF" },
+  { name: "כחול רענן", hex: "#3296FF" },
+  { name: "כחול חי", hex: "#007FFF" },
+  { name: "כחול מים עמוקים", hex: "#0066CC" },
+  { name: "כחול חזק", hex: "#0055A0" },
+  { name: "כחול כהה", hex: "#003F7A" },
+  { name: "כחול עמוק מאוד", hex: "#002850" }
+];
+const grayShades = [
+  { name: "אפור כמעט לבן", hex: "#F0F0F0" },
+  { name: "אפור בהיר מאוד", hex: "#D8D8D8" },
+  { name: "אפור פסטלי", hex: "#BEBEBE" },
+  { name: "אפור טבעי", hex: "#A0A0A0" },
+  { name: "אפור רענן", hex: "#888888" },
+  { name: "אפור בינוני", hex: "#707070" },
+  { name: "אפור כהה", hex: "#585858" },
+  { name: "אפור עמוק", hex: "#404040" },
+  { name: "אפור חזק", hex: "#282828" },
+  { name: "אפור כמעט שחור", hex: "#101010" }
+];
+const mixedShades = [
+{ name: "ירוק טבעי", hex: "#64FF64" },
+{ name: "ירוק חזק", hex: "#00A000" },
+{ name: "אדום טבעי", hex: "#FF6464" },
+{ name: "אדום חזק", hex: "#A00000" },
+{ name: "צהוב טבעי", hex: "#FFFF64" },
+{ name: "צהוב חזק", hex: "#A0A000" },
+{ name: "כחול שמיים", hex: "#64AFFF" },
+{ name: "כחול חזק", hex: "#0055A0" },
+{ name: "אפור טבעי", hex: "#A0A0A0" },
+{ name: "אפור חזק", hex: "#282828" }
+
+];
+
+function generateRandomNumbers(count, min, max) {
+    return Array.from({ length: count }, () => Math.floor(Math.random() * (max - min + 1)) + min);
+}
+
+function getShadeByValue(value, min, max) {
+    let index = Math.floor(((value - min) / (max - min)) * (greenShades.length - 1));
+    return greenShades[index].hex;
+}
+    const table = document.getElementById("colorTable");
+    table.innerHTML = ""; 
+    
+function createColorTable(shades,shades2,shades3) {
+    
+    for(let i=0 ;i< shades.length  ;i++)
+    {
+        const row = document.createElement("tr");
+        
+       
+        const cell = document.createElement("td");
+        cell.style.backgroundColor = shades[i].hex;
+        cell.textContent = `${i} - ${shades[i].name}`;
+        cell.style.color = i > 4 ? "white" : "black"; 
+        row.appendChild(cell);
+        const cell2 = document.createElement("td");
+        cell2.style.backgroundColor = shades2[i].hex;
+        cell2.textContent = `${i} - ${shades2[i].name}`;
+        cell2.style.color = i > 4 ? "white" : "black"; 
+        row.appendChild(cell2);
+        const cell3 = document.createElement("td");
+        cell3.style.backgroundColor = shades3[i].hex;
+        cell3.textContent = `${i} - ${shades3[i].name}`;
+        cell3.style.color = i > 4 ? "white" : "black"; 
+        row.appendChild(cell3);
+
+
+
+        table.appendChild(row);
+    }
+   
+
+  /*  numbers.forEach(num => {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+
+        let color = getShadeByValue(num, min, max);
+        let index = Math.floor(((num - min) / (max - min)) * (greenShades.length - 1));
+
+        cell.style.backgroundColor = color;
+        cell.textContent = `${num} - ${greenShades[index].name}`;
+        cell.style.color = index > 4 ? "white" : "black"; 
+
+        row.appendChild(cell);
+        table.appendChild(row);
+    });*/
+}
+
+//const randomNumbers = generateRandomNumbers(300, 1, 1000);
+createColorTable(greenShades,redShades,yellowShades);
+createColorTable(blueShades,grayShades,mixedShades);
+/*createColorTable(redShades);
+createColorTable(yellowShades);
+createColorTable(blueShades);
+createColorTable(grayShades);
+createColorTable(mixedShades);*/
+</script>
+
+</body>
+</html>
