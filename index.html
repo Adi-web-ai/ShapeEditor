@@ -98,13 +98,14 @@
     }
 </style>
 <title>Shape Editor</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <button id="toggle-header">Toggle Menu</button>
     <button id="next-header" onclick = "UploadNextCsvFiles()">Next File</button>
     <!-- Fixed Header -->
     <div id="header">
-        <h1 class="text-2xl font-bold mb-4">Shape On The Map 52 By Adi Shamir</h1>
+        <h1 class="text-2xl font-bold mb-4">Shape On The Map 53 By Adi Shamir</h1>
         
         <button class="btn" id="poly" onmouseover="inChangeBtnColor(this , 'poly')" onmouseout="outChangeBtnColor(this, 'poly')" >Polygon</button>
      <!--   <button id="circle" class="btn" onmouseover="inChangeBtnColor(this , 'circle')" onmouseout="outChangeBtnColor(this, 'circle')">Circle</button>
@@ -146,7 +147,7 @@
         
         <button class="button" id="idCsvMidrag" onmouseover="inChangeBtnColor(this , 'idCsvMidrag')" onmouseout="outChangeBtnColor(this, 'idCsvMidrag')" onclick = "changeCsvMidrag()">Csv Midrag Off</button>
         
-        Load Csv :<input type="file" accept=".csv" id="csv" multiple>
+        Load Excel :<input type="file" accept=".xlsx, .xls" id="csv" multiple>
         Load Shapes :  <input type="file" id="load-shapes" accept=".json" class="mr-2" />
         Load Image :  <input type="file" id="upload-image" accept="image/*" class="mr-2" size="100"/>
        
@@ -198,6 +199,7 @@ let clonedPolygons ;
 let stepHeight3d = 1;
 let AllTextValues = [] ;
 let rowTxtIndex = 0;
+let whiteColor = "#00000000" ; //"#ffffff" + "30";
 
 let TxtMikra = [] ;
 // Table settings
@@ -570,7 +572,7 @@ document.getElementById('idHeight').addEventListener('click', () => {
 });
 function resetColor()
 {
-    polygons.forEach(p=> p.color = "#ffffff" + "95");
+    polygons.forEach(p=> p.color = whiteColor);
   //  circles.forEach(p=> p.color = "#ffffff" + "95");
   //  rects.forEach(p=> p.color = "#ffffff" + "95");
     
@@ -835,12 +837,12 @@ function changeCsvMidrag()
     if(CsvMidrag == 'false')
     {
         CsvMidrag = 'true';
-        document.getElementById('idCsvMidrag').innerHTML ="Csv Midrag On";
+        document.getElementById('idCsvMidrag').innerHTML ="Excel Midrag On";
     }
     else{
         CsvMidrag = 'false'
         TxtMikra.length = 0 ;
-        document.getElementById('idCsvMidrag').innerHTML ="Csv Midrag Off";
+        document.getElementById('idCsvMidrag').innerHTML ="Excel Midrag Off";
     }
 }
 function AddVvlues(obj)
@@ -869,28 +871,28 @@ function UpdateMidragValuuesToObj(obj ,min ,max)
             let color = getShadeByValue(num, min, max);
             let index = Math.floor(((num - min) / (max - min)) * (Shades.length - 1));
             obj[i].index = index;
-          //  console.log("index : " + obj[i].index);
+            //console.log("index : " + obj[i].index);
             obj[i].color = color ;
             obj[i].neighborhoods = Math.floor(((max - min)/ (Shades.length - 1)) * index) + min;
             obj[i].rova = Math.floor(((max - min)/ (Shades.length - 1))*(index + 1)) + min;
-         //   console.log("Color : " + obj[i].color);
+            console.log(obj[i].ezor + " " + obj[i].text + " index : " + obj[i].index + " Color : " + obj[i].color);
 
             }
             else{
-                obj[i].color ="#FFFFFf" + "95";
+                obj[i].color =whiteColor;
             }
         
         } 
         else if (CsvMidrag == 'true')
         {
-            if(obj[i].colorIndex && obj[i].text)
+            if(obj[i].colorIndex >= 0 && obj[i].text)
             {
             obj[i].color = Shades[Math.floor(obj[i].colorIndex)].hex ;
             document.getElementById('pos').innerHTML =obj[i].color;
           //  console.log(obj[i].color);
             }
             else{
-                obj[i].color ="#FFFFFf" + "95";
+                obj[i].color =whiteColor;
             }
             
         }
@@ -1099,109 +1101,112 @@ function UploadNextCsvFiles()
 
 lstfilevalue = document.querySelector("input[list=lstCsvFiles]").value;
 let numfile;
-for(let i=0 ; i<files.length ; i++)
-{
-    if(files[i].name == lstfilevalue)
-{
-    numfile=i;
-    break;
-}
-
-}
-let file;
-if(numfile >=0 )
-{
-    file = structuredClone(files[numfile]);
-}
-else
-{
-    nextfiles++ ;
-    if(nextfiles >= files.length)
+    for(let i=0 ; i<files.length ; i++)
     {
-    nextfiles=0;
-    }
-console.log("files " + files);
-console.log("files.length " + files.length);
-file = structuredClone(files[nextfiles]);
+        if(files[i].name == lstfilevalue)
+        {
+        numfile=i;
+        break;
+        }
 
-}
+    }
+
+let file;
+    if(numfile >=0 )
+    {
+        file = structuredClone(files[numfile]);
+    }
+    else
+    {
+        nextfiles++ ;
+        if(nextfiles >= files.length)
+        {
+        nextfiles=0;
+        }
+    console.log("files " + files);
+    console.log("files.length " + files.length);
+    file = structuredClone(files[nextfiles]);
+
+    }
 //let file = structuredClone(files[nextfiles]);
 
-          let reader = new FileReader();
-document.getElementById('idfilename').innerHTML = file.name;
-          console.log("Selected file:", file);
-
-          reader.onload = (e) => {
-              let content = e.target.result;
-              rows = content.split('\n')
-                  .map(row => row.split(','));
-                UpdateShape(polygons, rows); // Ensure UpdateShape can handle the CSV data
-             //   UpdateShape(circles,rows);          
-             //   UpdateShape(rects,rows);
-              document.getElementById('pos').innerHTML = polygons.length;
-            DrawMidragColor();
-            TxtMikra.length = 0;
-            UpdateMikra(false);
-          //drawCanvas();
-            };
-
-          reader.onerror = (e) => {
-              console.error("Error reading file:", e);
-          };
-
-          reader.readAsText(file , 'UTF-8');
-          document.getElementById('lstcsv').value = '';
-         // document.getElementById('lstCsvFiles').innerHTML = '';
-          //DrawMidragColor();
-          //drawCanvas();
-       //   CSV.value = ''; 
-
-}
-
-if(CSV)
-{
-CSV.addEventListener('change', (event) => {
-    console.log("Enter file csv");
-    if (event.target.files.length === 0) {
-        console.warn("No file selected.");
-        return;
-    }
-
-    files =structuredClone(event.target.files);
-    console.log("files " + files);
-    console.log("files  " +files.length);
-    
-    let file =structuredClone(files[0]); 
     let reader = new FileReader();
-    
     document.getElementById('idfilename').innerHTML = file.name;
     console.log("Selected file:", file);
 
-    reader.onload = (e) => {
-        let content = e.target.result;
-        rows = content.split('\n')
-            .map(row => row.split(','));
-        UpdateShape(polygons, rows); // Ensure UpdateShape can handle the CSV data
-        //   UpdateShape(circles,rows);          
-        //   UpdateShape(rects,rows);
+    reader.onload = function (e)
+    {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+
+        // Get first sheet name
+        const sheetName = workbook.SheetNames[0];
+        document.getElementById("pos").innerHTML = "Sheet Name: " + sheetName; // Display sheet name
+
+        // Convert sheet to array list (2D array)
+        const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
+    //	document.getElementById("demo").textContent =sheet[1][0];
+    //   rows = sheet;
+        UpdateShape(polygons, sheet); // Ensure UpdateShape can handle the CSV data
         document.getElementById('pos').innerHTML = polygons.length;
         DrawMidragColor();
         TxtMikra.length = 0;
         UpdateMikra(false);
-        //drawCanvas();
+         
     };
+        reader.readAsArrayBuffer(file);
+        document.getElementById('lstcsv').value = '';
+};
 
-    reader.onerror = (e) => {
-        console.error("Error reading file:", e);
-    };
 
-    reader.readAsText(file , 'UTF-8');
-    //DrawMidragColor();
-    //drawCanvas();
+
+if(CSV)
+{
+    CSV.addEventListener('change', (event) => 
+    {
+        console.log("Enter file Excel");
+        if (event.target.files.length === 0) {
+            console.warn("No file selected.");
+            return;
+        }
+
+        files =structuredClone(event.target.files);
+    //   console.log("files " + files);
+    //    console.log("files  " +files.length);
+        
+        let file =structuredClone(files[0]); 
+        let reader = new FileReader();
+        
+        document.getElementById('idfilename').innerHTML = file.name;
+        console.log("Selected file:", file);
+                
+        reader.onload = function (e)
+        {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: "array" });
+
+            // Get first sheet name
+            const sheetName = workbook.SheetNames[0];
+            document.getElementById("pos").innerHTML = "Sheet Name: " + sheetName; // Display sheet name
+
+            // Convert sheet to array list (2D array)
+            const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
+        //	document.getElementById("demo").textContent =sheet[1][0];
+        //   rows = sheet;
+            UpdateShape(polygons, sheet); // Ensure UpdateShape can handle the CSV data
+            document.getElementById('pos').innerHTML = polygons.length;
+            DrawMidragColor();
+            TxtMikra.length = 0;
+            UpdateMikra(false);
+            
+        };
+        reader.readAsArrayBuffer(file);
+        
+
     CSV.value = ''; 
     console.log(files);
-//  clearDatalist(lstCsvFiles);
-          lstCsvFiles.replaceChildren()
+    
+    lstCsvFiles.replaceChildren()
     if(files)
     {
         for(let i=0 ; i< files.length;i++)
@@ -1210,35 +1215,10 @@ CSV.addEventListener('change', (event) => {
         option.value = files[i].name;
         list.appendChild(option);
         }    
-    }          
-});    
-      
-}
+    }
+});          
+}  
 
-
-// Usage
-
-/*CSV.addEventListener('click', (event) => {
-    let file = event.target.files[0];
-    let reader = new FileReader();
-    console.log(file);
-    console.log("file");
-
-    reader.onload = (e) => {
-        let content = e.target.result;
-        let rows = content.split('\n')
-            .map(row => row.split(','));
-          //UpdateShape(circles,rows);
-          UpdateShape(polygons,rows);
-          //UpdateShape(rects,rows);
-      
-    };
-
-    reader.readAsText(file);
-    document.getElementById('pos').innerHTML =polygons.length;
-  //  if(polygons.length>0){drawCanvas();document.getElementById('idupdatedata').innerHTML ="draw csv";}
-    
-});*/
 function UpdateShape(shape,rows)
 {
 	for (let i = 0; i < shape.length; i++)
@@ -1255,9 +1235,10 @@ function UpdateShape(shape,rows)
         for(let j=0;j<rows.length;j++)
         {
             //if(rows[j][0].trim() == shape[i].ezor.trim())
-            if(rows[j][0].trim() == shape[i].ezor)
+            if(rows[j][0] == shape[i].ezor)
             {
             document.getElementById('pos').innerHTML ="good";
+            console.table(rows[j][0] + " " + rows[j][1] + " " + rows[j][2] + " " +rows[j][3] );
             shape[i].text = rows[j][1];
             shape[i].colorIndex = rows[j][2];
             shape[i].CsvMikra = rows[j][3];
@@ -1394,6 +1375,7 @@ function drawPolygon(points, color, text = "",PosTx , PosTy, shape , temp = fals
    }
    ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
     if (!temp) ctx.closePath();
+    console.log(shape.ezor + " color " + color);
     ctx.strokeStyle = "DarkSlateGray";
     ctx.stroke();
     ctx.fillStyle = color;
@@ -1533,7 +1515,7 @@ function drawTextInShape(points, text , PosTx , PosTy ,shape, sug) {
         {
         ctx.fillStyle = "black";
         }*/
-      let  tmpcolor = "#ffffff" + "95";
+      let  tmpcolor = whiteColor;
       if(shape.color == tmpcolor)
       {
       ctx.fillStyle = "black"
@@ -1833,5 +1815,3 @@ function getClickedShape(x, y) {
     </script>
 </body>
 </html>
-
-
