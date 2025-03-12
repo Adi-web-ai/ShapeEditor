@@ -105,7 +105,7 @@
     <button id="next-header" onclick = "UploadNextCsvFiles()">Next File</button>
     <!-- Fixed Header -->
     <div id="header">
-        <h1 class="text-2xl font-bold mb-4">Shape On The Map 53 By Adi Shamir</h1>
+        <h1 class="text-2xl font-bold mb-4">Shape On The Map 55 By Adi Shamir</h1>
         
         <button class="btn" id="poly" onmouseover="inChangeBtnColor(this , 'poly')" onmouseout="outChangeBtnColor(this, 'poly')" >Polygon</button>
      <!--   <button id="circle" class="btn" onmouseover="inChangeBtnColor(this , 'circle')" onmouseout="outChangeBtnColor(this, 'circle')">Circle</button>
@@ -418,7 +418,7 @@ for (let i = 0; i < TxtMikra.length  && i <uniqueArray.length ; i++)
 
     }
 }
-
+//let  strm ="";
 function UpdateMikra(update)
 {
   // Draw text inside the cells
@@ -429,15 +429,20 @@ ctx.textBaseline = "middle";
 
 let startX = canvas.width * 0.60;
 startX = GetStartx();
-let  str ="";// str  = document.getElementById("idtext").value;
+// str  = document.getElementById("idtext").value;
+ /*   if(update == 'true')
+    {
+    strm  = document.getElementById("idtext").value;
+    }*/
   //alert(str)
-  if (str ==='del')
+ /* if (strm ==='del')
   {
-  TxtMikra.length = 0;
+  //TxtMikra.length = 0;
+  strm = "";
   drawCanvas();
   //DrawTable();
   return;
-  }
+  }*/
  let uniqueArray =GetIndexColorArray();
  if(CsvMidrag === 'true')
  {
@@ -446,10 +451,7 @@ let  str ="";// str  = document.getElementById("idtext").value;
  }
  else
  {
-    if(update == 'true')
-    {
-    str  = document.getElementById("idtext").value;
-    }
+    
     TxtMikra.length = 0 ;
     for(let i=0; i< uniqueArray.length ; i++)
     {
@@ -457,7 +459,12 @@ let  str ="";// str  = document.getElementById("idtext").value;
         {
             if(polygons[j].index == uniqueArray[i])
             {
-                TxtMikra.push(polygons[j].midragMin +" - " +polygons[j].midragMax );
+           
+                TxtMikra.push(polygons[j].midragMin +" - " +polygons[j].midragMax + " " + polygons[j].mikrayadani);
+            
+             //   TxtMikra.push(polygons[j].midragMin +" - " +polygons[j].midragMax );
+           
+                
                 break;
             }
         }
@@ -1282,6 +1289,7 @@ function UpdateShape(shape,rows)
     shape[i].index = undefined;
     shape[i].colorIndex = undefined;
     shape[i].CsvMikra = undefined;
+    shape[i].mikrayadani = undefined;
     }
     for (let i = 0; i < shape.length; i++)
     {
@@ -1297,6 +1305,7 @@ function UpdateShape(shape,rows)
             shape[i].text = rows[j][1];
             shape[i].colorIndex = rows[j][2];
             shape[i].CsvMikra = rows[j][3];
+            shape[i].mikrayadani = rows[0][1];
            // polygons[i].colorIndex= index;
             }
         }
