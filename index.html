@@ -130,9 +130,22 @@
         <datalist id="lstCsvFiles"></datalist>
         
         <button class="button" id="idMidragColor" onclick = "DrawMidragColor()">Draw Midrag Color</button>
+        <button class="button" id="idMidragColor" onclick = "ChangeSizeOfMidrag()">Size</button>
+        <input list="lst-size-midrag" type="text" size="5px">
+        <datalist id="lst-size-midrag">
+            <option value="3">
+            <option value="4">
+            <option value="5">
+            <option value="6">
+            <option value="7">
+            <option value="8">
+            <option value="9">
+            <option value="10"></option>
+        </datalist>
+
         <button class="button" id="idHeight" > 1</button>
         <button class="button" id="id3d" onmouseover="inChangeBtnColor(this , 'id3d')" onmouseout="outChangeBtnColor(this, 'id3d')" >3D Off</button>
-        <input list="color-test" type="text">
+        <input list="color-test" type="text" size="10px">
         <datalist id="color-test">
             <option value="Green">
             <option value="Blue">
@@ -215,6 +228,7 @@ let nextfiles = 0 ;
 let files = []; 
 let list = document.getElementById('lstCsvFiles');
 
+let sizeMidrag = 4;
 const greenShades = [
   { name: "ירוק כמעט לבן", hex: "#F0FFF0" },
   { name: "ירוק בהיר מאוד", hex: "#C8FFC8" },
@@ -288,7 +302,19 @@ const mixedShades = [
 { name: "אפור חזק", hex: "#282828" }
 
 ];
+function ChangeSizeOfMidrag()
+{
+    let lstsize = document.querySelector("input[list=lst-size-midrag").value;
+    if(lstsize)
+    {
+        sizeMidrag = lstsize - 1;
+    }
+    else{
+        sizeMidrag = 4;
+    }
+    
 
+}
 function LoadColorPlate()
 {
     window.open("%E2%80%8F%E2%80%8Fcolor_editor_4.html")
@@ -870,12 +896,12 @@ function UpdateMidragValuuesToObj(obj ,min ,max)
             {
                 num = Math.floor(obj[i].text);
             let color = getShadeByValue(num, min, max);
-            let index = Math.floor(((num - min) / (max - min)) * (Shades.length - 1));
+            let index = Math.floor(((num - min) / (max - min)) * (sizeMidrag));
             obj[i].index = index;
             //console.log("index : " + obj[i].index);
             obj[i].color = color ;
-            obj[i].neighborhoods = Math.floor(((max - min)/ (Shades.length - 1)) * index) + min;
-            obj[i].rova = Math.floor(((max - min)/ (Shades.length - 1))*(index + 1)) + min;
+            obj[i].neighborhoods = Math.floor(((max - min)/ (sizeMidrag)) * index) + min;
+            obj[i].rova = Math.floor(((max - min)/ (sizeMidrag))*(index + 1)) + min;
             console.log(obj[i].ezor + " " + obj[i].text + " index : " + obj[i].index + " Color : " + obj[i].color);
 
             }
@@ -1044,7 +1070,7 @@ function FindMaxValue(objshape)
     return max;
 }
 function getShadeByValue(value, min, max) {
-    let index = Math.floor(((value - min) / (max - min)) * (Shades.length - 1));
+    let index = Math.floor(((value - min) / (max - min)) * (sizeMidrag));
  //   console.log(index);
   //  console.log(Shades[index].hex);
     return Shades[index].hex;
