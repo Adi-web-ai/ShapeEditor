@@ -1802,9 +1802,10 @@ if (clickedShape && statusUpdateData == 'false')
         }
         else{
             document.getElementById('idneighborhoods').value = selectedPolygon.CsvMikra  ;
-            if(selectedPolygon.index != undefined){
+           /* if(selectedPolygon.index != undefined){
                 document.getElementById('idrova').value = selectedPolygon.index  ;
-            }else if (selectedPolygon.colorIndex != undefined){
+            }else*/
+            if (selectedPolygon.colorIndex != undefined){
                 document.getElementById('idrova').value = selectedPolygon.colorIndex  ;
             }
         }
