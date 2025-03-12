@@ -228,7 +228,7 @@ let nextfiles = 0 ;
 let files = []; 
 let list = document.getElementById('lstCsvFiles');
 
-let sizeMidrag = 4;
+let sizeMidrag = 5;
 const greenShades = [
   { name: "ירוק כמעט לבן", hex: "#F0FFF0" },
   { name: "ירוק בהיר מאוד", hex: "#C8FFC8" },
@@ -429,7 +429,7 @@ ctx.textBaseline = "middle";
 
 let startX = canvas.width * 0.60;
 startX = GetStartx();
-let  str = document.getElementById("idtext").value;
+let  str ="";// str  = document.getElementById("idtext").value;
   //alert(str)
   if (str ==='del')
   {
@@ -446,7 +446,25 @@ let  str = document.getElementById("idtext").value;
  }
  else
  {
-    if(str != "" && TxtMikra.length < uniqueArray.length)
+    if(update == 'true')
+    {
+    str  = document.getElementById("idtext").value;
+    }
+    TxtMikra.length = 0 ;
+    for(let i=0; i< uniqueArray.length ; i++)
+    {
+        for(let j = 0 ; j<polygons.length;j++)
+        {
+            if(polygons[j].index == uniqueArray[i])
+            {
+                TxtMikra.push(polygons[j].midragMin +" - " +polygons[j].midragMax );
+                break;
+            }
+        }
+    console.log("mikra " + TxtMikra);
+
+    }
+ /*   if(str != "" && TxtMikra.length < uniqueArray.length)
   {
     if(update == 'true')
     {
@@ -454,7 +472,7 @@ let  str = document.getElementById("idtext").value;
 
     }
     
-  }
+  }*/
   console.log("mikra " + TxtMikra + " " + update);
   
   
@@ -900,8 +918,16 @@ function UpdateMidragValuuesToObj(obj ,min ,max)
             obj[i].index = index;
             //console.log("index : " + obj[i].index);
             obj[i].color = color ;
-            obj[i].neighborhoods = Math.floor(((max - min)/ (sizeMidrag)) * index) + min;
-            obj[i].rova = Math.floor(((max - min)/ (sizeMidrag))*(index + 1)) + min;
+            let step = Math.floor((max - min)/sizeMidrag); 
+            let midragMax = ((index + 1 )* step)+min ;
+            let midragMin = midragMax - step;
+            console.log("index : " + obj[i].index + " min " + midragMin + " max " + midragMax + " text " + obj[i].text);
+            obj[i].midragMax =  midragMax;
+            obj[i].midragMin = midragMin ;
+            obj[i].neighborhoods = midragMin; 
+            obj[i].rova = midragMax;
+          //  obj[i].neighborhoods = Math.floor(((max - min)/ (sizeMidrag)) * index) + min;
+          //  obj[i].rova = Math.floor(((max - min)/ (sizeMidrag))*(index + 1)) + min;
             console.log(obj[i].ezor + " " + obj[i].text + " index : " + obj[i].index + " Color : " + obj[i].color);
 
             }
@@ -1760,13 +1786,21 @@ if (clickedShape && statusUpdateData == 'false')
         }
         else
         {
-
-        document.getElementById('idneighborhoods').value = selectedPolygon.CsvMikra  ;
-        if(selectedPolygon.index != undefined){
-            document.getElementById('idrova').value = selectedPolygon.index  ;
-        }else if (selectedPolygon.colorIndex != undefined){
-            document.getElementById('idrova').value = selectedPolygon.colorIndex  ;
+            if (CsvMidrag == 'false')
+        {
+            document.getElementById('idneighborhoods').value = selectedPolygon.midragMin  ;
+            document.getElementById('idrova').value = selectedPolygon.midragMax ;
         }
+        else{
+            document.getElementById('idneighborhoods').value = selectedPolygon.CsvMikra  ;
+            if(selectedPolygon.index != undefined){
+                document.getElementById('idrova').value = selectedPolygon.index  ;
+            }else if (selectedPolygon.colorIndex != undefined){
+                document.getElementById('idrova').value = selectedPolygon.colorIndex  ;
+            }
+        }
+           
+       
 
         
         document.getElementById('idezor').value = selectedPolygon.ezor;
