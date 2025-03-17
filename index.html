@@ -158,7 +158,7 @@
         <button class="button" id="idcolorplate" onclick = "LoadColorPlate()">Color Plate</button>
         <br>
 		
-        
+        <button class="button" id="iddownloadexcel" onclick = "DownLoadExcel()">DL Excel</button>
         <button class="button" id="idCsvMidrag" onmouseover="inChangeBtnColor(this , 'idCsvMidrag')" onmouseout="outChangeBtnColor(this, 'idCsvMidrag')" onclick = "changeCsvMidrag()">Excel Midrag Off</button>
         
         Load Excel :<input type="file" accept=".xlsx, .xls" id="csv" multiple>
@@ -303,6 +303,33 @@ const mixedShades = [
 { name: "אפור חזק", hex: "#282828" }
 
 ];
+
+function DownLoadExcel()
+{
+   console.log(polygons);
+    if (polygons.length == 0) {return ;}
+    let data = polygons;
+   /* if(EzorNot)
+    {
+        data =EzorNot;
+    }
+    else{
+        data = polygons;
+    }*/
+    
+    // Create a new workbook
+    const workbook = XLSX.utils.book_new();
+    
+    // Convert array to worksheet
+   // const worksheet = XLSX.utils.aoa_to_sheet(data);//Creates a worksheet from an array of arrays.
+    const worksheet = XLSX.utils.json_to_sheet(data);// Creates a worksheet from an array of objects.
+    
+    // Append worksheet to workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+
+    // Export to file
+    XLSX.writeFile(workbook, "data.xlsx");
+}
 function ChangeSizeOfMidrag()
 {
     let lstsize = document.querySelector("input[list=lst-size-midrag").value;
@@ -1311,6 +1338,8 @@ function UpdateShape(shape,rows)
     shape[i].colorIndex = undefined;
     shape[i].CsvMikra = undefined;
     shape[i].mikrayadani = undefined;
+    shape[i].rova = undefined;
+    shape[i].neighborhoods = undefined;
     }
     for (let i = 0; i < shape.length; i++)
     {
