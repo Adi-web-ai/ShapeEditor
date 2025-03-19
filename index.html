@@ -1539,14 +1539,14 @@ function drawArc(points, color , text = "") {
     }
    
 }
-function GetfillStyle(shape)
+function GetfillStyleCsvTrue(shape)
 {
  lstColor = document.querySelector("input[list=color-test]").value;
  let fillstyle;
   switch(lstColor)
   {
   case "Green":
-    if(shape.index >=6 || shape.colorIndex >= 6)
+    if( shape.colorIndex >= 6)
         {
         fillstyle = "white";
         }
@@ -1556,7 +1556,7 @@ function GetfillStyle(shape)
         }
     break;
   case "Blue":
-    if(shape.index >=4 || shape.colorIndex >= 4)
+    if( shape.colorIndex >= 4)
         {
         fillstyle = "white";
         }
@@ -1566,7 +1566,7 @@ function GetfillStyle(shape)
         }
     break;
   case "Red":
-      if(shape.index >=5 || shape.colorIndex >= 5)
+      if(shape.colorIndex >= 5)
         {
         fillstyle = "white";
         }
@@ -1576,7 +1576,7 @@ function GetfillStyle(shape)
         }
       break;
   case "Yellow":
-      if(shape.index >=6 || shape.colorIndex >= 6)
+      if( shape.colorIndex >= 6)
         {
         fillstyle = "white";
         }
@@ -1586,7 +1586,7 @@ function GetfillStyle(shape)
         }
       break;
   case "Gray":
-      if(shape.index >=4 || shape.colorIndex >= 4)
+      if( shape.colorIndex >= 4)
         {
         fillstyle = "white";
         }
@@ -1596,7 +1596,7 @@ function GetfillStyle(shape)
         }
       break;
   case "Mixed":
-        if(shape.index >=7 || shape.colorIndex >= 7 || shape.index == 3 || shape.colorIndex == 3)
+        if(shape.colorIndex >= 7 || shape.colorIndex == 3)
         {
         fillstyle = "white";
         }
@@ -1606,7 +1606,88 @@ function GetfillStyle(shape)
         }
         break;
   default:
-    if(shape.index >=5 || shape.colorIndex >= 5)
+    if(shape.colorIndex >= 5)
+        {
+        fillstyle = "white";
+        }
+        else
+        {
+        fillstyle = "black";
+        }
+    
+    
+  }
+  document.getElementById('pos').innerHTML = fillstyle;
+  return fillstyle;
+}
+function GetfillStyle(shape)
+{
+ lstColor = document.querySelector("input[list=color-test]").value;
+ let fillstyle;
+  switch(lstColor)
+  {
+  case "Green":
+    if(shape.index >=6)
+        {
+        fillstyle = "white";
+        }
+        else
+        {
+        fillstyle = "black";
+        }
+    break;
+  case "Blue":
+    if(shape.index >=4 )
+        {
+        fillstyle = "white";
+        }
+        else
+        {
+        fillstyle = "black";
+        }
+    break;
+  case "Red":
+      if(shape.index >=5 )
+        {
+        fillstyle = "white";
+        }
+        else
+        {
+        fillstyle = "black";
+        }
+      break;
+  case "Yellow":
+      if(shape.index >=6 )
+        {
+        fillstyle = "white";
+        }
+        else
+        {
+        fillstyle = "black";
+        }
+      break;
+  case "Gray":
+      if(shape.index >=4 )
+        {
+        fillstyle = "white";
+        }
+        else
+        {
+        fillstyle = "black";
+        }
+      break;
+  case "Mixed":
+        if(shape.index >=7 ||  shape.index == 3 )
+        {
+        fillstyle = "white";
+        }
+        else
+        {
+        fillstyle = "black";
+        }
+        break;
+  default:
+    if(shape.index >=5 )
         {
         fillstyle = "white";
         }
@@ -1644,7 +1725,14 @@ function drawTextInShape(points, text , PosTx , PosTy ,shape, sug) {
       }
       else
       {
-      ctx.fillStyle =   GetfillStyle(shape)
+        if(CsvMidrag == 'false')
+        {
+        ctx.fillStyle =   GetfillStyle(shape)
+        }
+        else if(CsvMidrag == 'true')
+        {
+        ctx.fillStyle =   GetfillStyleCsvTrue(shape)
+        }
       }
     }
     else
