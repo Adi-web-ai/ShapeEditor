@@ -1942,22 +1942,25 @@ if (clickedShape && statusUpdateData == 'false')
         else
         {
             if (CsvMidrag == 'false')
-        {
+            {
             document.getElementById('idneighborhoods').value = selectedPolygon.midragMin  ;
             document.getElementById('idrova').value = selectedPolygon.midragMax ;
-        }
-        else{
+            }
+            else
+            {
             document.getElementById('idneighborhoods').value = selectedPolygon.CsvMikra  ;
            /* if(selectedPolygon.index != undefined){
                 document.getElementById('idrova').value = selectedPolygon.index  ;
             }else*/
-            if (selectedPolygon.colorIndex != undefined){
-                document.getElementById('idrova').value = selectedPolygon.colorIndex  ;
+                if (selectedPolygon.colorIndex != undefined)
+                {
+                    document.getElementById('idrova').value = selectedPolygon.colorIndex  ;
+                }
+                else
+                {
+                    document.getElementById('idrova').value ="";
+                }
             }
-        }
-           
-       
-
         
         document.getElementById('idezor').value = selectedPolygon.ezor;
         document.getElementById('idtext').value = selectedPolygon.text;
