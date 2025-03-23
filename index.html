@@ -1952,6 +1952,14 @@ if (clickedShape && statusUpdateData == 'false')
         if(ColorStatus == 'true')
         {
           selectedPolygon.color = currentColor;
+		if(status3d == 'false')
+		{
+		drawCanvas();
+		}
+		else if (status3d == 'true')
+		{
+		DrawMidragColor();
+		}
         }
         else
         {
@@ -1981,14 +1989,14 @@ if (clickedShape && statusUpdateData == 'false')
         //console.log(selectedPolygon.text);
         
         }
-        if(status3d == 'false')
+   /*     if(status3d == 'false')
         {
             drawCanvas();
         }
         else if (status3d == 'true')
         {
             DrawMidragColor();
-        }
+        }*/
       //  drawCanvas();
           return;
     }
