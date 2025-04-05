@@ -1,6 +1,3 @@
-
-
-
 <!DOCTYPE html>
 <html lang="he">
 <head>
@@ -18,8 +15,8 @@
     <script src="https://rawgit.com/mapbox/leaflet-image/gh-pages/leaflet-image.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image-more/3.0.0/dom-to-image-more.min.js"></script>
     
-    <link rel="stylesheet" href="Leaflet.BigImage.min.css">
-    <script src="Leaflet.BigImage.min.js"></script>
+    <link rel="stylesheet" href="dist/Leaflet.BigImage.min.css">
+    <script src="dist/Leaflet.BigImage.min.js"></script>
     <style>
         #map { height: 690px; width:800px;}
     </style>
@@ -44,7 +41,7 @@
         <div style="display: flex; gap: 40px; margin: 20px;">
             <!-- טבלת ערכים -->
             <div>
-                <h3>טבלת ערכים</h3>
+                <h1 style="color:blue;text-align:center;">מקרא</h1>
                 <table id="valuesTable" border="1" style="border-collapse: collapse; width: 300px;">
                     <thead>
                         <tr><th>NUM</th><th>MIKRA</th></tr>
@@ -53,19 +50,20 @@
                 </table>
             </div>
         
-            <!-- טבלת פוליגונים -->
+            <!-- טבלת פוליגונים עם גלילה -->
             <div>
-                <h3>טבלת פוליגונים</h3>
-                <table id="polygonTable" border="1" style="border-collapse: collapse; width: 300px;">
-                    <thead>
-                        <tr><th>ID</th><th>VALUE</th></tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <h1 style="color:blue;text-align:center;">טבלת פוליגונים</h1>
+                <div style="height: 600px; overflow-y: auto; border: 1px solid #ccc;">
+                    <table id="polygonTable" border="1" style="border-collapse: collapse; width:300px;">
+                        <thead style="position: sticky; top: 0; background: white; z-index: 1;">
+                            <tr><th>ID</th><th>VALUE</th></tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </div>
         
-        </div>
     
     
         
@@ -122,6 +120,7 @@
 
             const tdMikra = document.createElement("td");
             tdMikra.textContent = row.MIKRA;
+            tdMikra.style.textAlign = "center";
 
             tr.appendChild(tdNum);
             tr.appendChild(tdMikra);
@@ -142,7 +141,7 @@
 
             const tdValue = document.createElement("td");
             tdValue.textContent = row.VALUE;
-
+            tdValue.style.textAlign = "center";
             tr.appendChild(tdID);
             tr.appendChild(tdValue);
 
