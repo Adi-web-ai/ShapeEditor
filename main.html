@@ -97,14 +97,16 @@
         margin-top: 20px;
     }
 </style>
+<meta name="google-site-verification" content="piSmbBGKAUaYGGzsSzF8xU8wCMAxMmrcB5WpgQrAuqo" />
 <title>Shape Editor</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <button id="toggle-header">Toggle Menu</button>
     <button id="next-header" onclick = "UploadNextCsvFiles()">Next File</button>
     <!-- Fixed Header -->
     <div id="header">
-        <h1 class="text-2xl font-bold mb-4">Shape On The Map 52 By Adi Shamir</h1>
+        <h1 class="text-2xl font-bold mb-4">Shape On The Map 56 By Adi Shamir</h1>
         
         <button class="btn" id="poly" onmouseover="inChangeBtnColor(this , 'poly')" onmouseout="outChangeBtnColor(this, 'poly')" >Polygon</button>
      <!--   <button id="circle" class="btn" onmouseover="inChangeBtnColor(this , 'circle')" onmouseout="outChangeBtnColor(this, 'circle')">Circle</button>
@@ -129,9 +131,22 @@
         <datalist id="lstCsvFiles"></datalist>
         
         <button class="button" id="idMidragColor" onclick = "DrawMidragColor()">Draw Midrag Color</button>
+        <button class="button" id="idMidragColor" onclick = "ChangeSizeOfMidrag()">Size</button>
+        <input list="lst-size-midrag" type="text" size="5px">
+        <datalist id="lst-size-midrag">
+            <option value="3">
+            <option value="4">
+            <option value="5">
+            <option value="6">
+            <option value="7">
+            <option value="8">
+            <option value="9">
+            <option value="10"></option>
+        </datalist>
+
         <button class="button" id="idHeight" > 1</button>
         <button class="button" id="id3d" onmouseover="inChangeBtnColor(this , 'id3d')" onmouseout="outChangeBtnColor(this, 'id3d')" >3D Off</button>
-        <input list="color-test" type="text">
+        <input list="color-test" type="text" size="10px">
         <datalist id="color-test">
             <option value="Green">
             <option value="Blue">
@@ -143,10 +158,10 @@
         <button class="button" id="idcolorplate" onclick = "LoadColorPlate()">Color Plate</button>
         <br>
 		
+        <button class="button" id="iddownloadexcel" onclick = "DownLoadExcel()">DL Excel</button>
+        <button class="button" id="idCsvMidrag" onmouseover="inChangeBtnColor(this , 'idCsvMidrag')" onmouseout="outChangeBtnColor(this, 'idCsvMidrag')" onclick = "changeCsvMidrag()">Excel Midrag Off</button>
         
-        <button class="button" id="idCsvMidrag" onmouseover="inChangeBtnColor(this , 'idCsvMidrag')" onmouseout="outChangeBtnColor(this, 'idCsvMidrag')" onclick = "changeCsvMidrag()">Csv Midrag Off</button>
-        
-        Load Csv :<input type="file" accept=".csv" id="csv" multiple>
+        Load Excel :<input type="file" accept=".xlsx, .xls" id="csv" multiple>
         Load Shapes :  <input type="file" id="load-shapes" accept=".json" class="mr-2" />
         Load Image :  <input type="file" id="upload-image" accept="image/*" class="mr-2" size="100"/>
        
@@ -161,7 +176,8 @@
 
     <!-- Content (Moves when scrolling) -->
     <div class="content">
-     <br> <br> <br><br> <br> <canvas id="canvas" width="2500" height="2500" class="border"></canvas>
+	<br> <br> <br><label id="idTitleFile">message :</label>
+     <br> <br> <canvas id="canvas" width="2500" height="2500" class="border"></canvas>
      
     </div>
   <script>
@@ -198,6 +214,7 @@ let clonedPolygons ;
 let stepHeight3d = 1;
 let AllTextValues = [] ;
 let rowTxtIndex = 0;
+let whiteColor = "#00000000" ; //"#ffffff" + "30";
 
 let TxtMikra = [] ;
 // Table settings
@@ -212,6 +229,7 @@ let nextfiles = 0 ;
 let files = []; 
 let list = document.getElementById('lstCsvFiles');
 
+let sizeMidrag = 4;
 const greenShades = [
   { name: "ירוק כמעט לבן", hex: "#F0FFF0" },
   { name: "ירוק בהיר מאוד", hex: "#C8FFC8" },
@@ -286,6 +304,45 @@ const mixedShades = [
 
 ];
 
+function DownLoadExcel()
+{
+   console.log(polygons);
+    if (polygons.length == 0) {return ;}
+    let data = polygons;
+   /* if(EzorNot)
+    {
+        data =EzorNot;
+    }
+    else{
+        data = polygons;
+    }*/
+    
+    // Create a new workbook
+    const workbook = XLSX.utils.book_new();
+    
+    // Convert array to worksheet
+   // const worksheet = XLSX.utils.aoa_to_sheet(data);//Creates a worksheet from an array of arrays.
+    const worksheet = XLSX.utils.json_to_sheet(data);// Creates a worksheet from an array of objects.
+    
+    // Append worksheet to workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+
+    // Export to file
+    XLSX.writeFile(workbook, "data.xlsx");
+}
+function ChangeSizeOfMidrag()
+{
+    let lstsize = document.querySelector("input[list=lst-size-midrag").value;
+    if(lstsize)
+    {
+        sizeMidrag = lstsize ;
+    }
+    else{
+        sizeMidrag = 4;
+    }
+    
+
+}
 function LoadColorPlate()
 {
     window.open("%E2%80%8F%E2%80%8Fcolor_editor_4.html")
@@ -389,7 +446,7 @@ for (let i = 0; i < TxtMikra.length  && i <uniqueArray.length ; i++)
 
     }
 }
-
+//let  strm ="";
 function UpdateMikra(update)
 {
   // Draw text inside the cells
@@ -400,15 +457,20 @@ ctx.textBaseline = "middle";
 
 let startX = canvas.width * 0.60;
 startX = GetStartx();
-let  str = document.getElementById("idtext").value;
+// str  = document.getElementById("idtext").value;
+ /*   if(update == 'true')
+    {
+    strm  = document.getElementById("idtext").value;
+    }*/
   //alert(str)
-  if (str ==='del')
+ /* if (strm ==='del')
   {
-  TxtMikra.length = 0;
+  //TxtMikra.length = 0;
+  strm = "";
   drawCanvas();
   //DrawTable();
   return;
-  }
+  }*/
  let uniqueArray =GetIndexColorArray();
  if(CsvMidrag === 'true')
  {
@@ -417,7 +479,35 @@ let  str = document.getElementById("idtext").value;
  }
  else
  {
-    if(str != "" && TxtMikra.length < uniqueArray.length)
+    
+    TxtMikra.length = 0 ;
+    for(let i=0; i< uniqueArray.length ; i++)
+    {
+        for(let j = 0 ; j<polygons.length;j++)
+        {
+            if(polygons[j].index == uniqueArray[i])
+            {
+           		let tmpmidragMin = polygons[j].midragMin;
+                if(i == 0)
+                {
+                tmpmidragMin = polygons[j].midragMin;
+                }
+                else
+                {
+                tmpmidragMin = polygons[j].midragMin +1 ;
+                }
+                TxtMikra.push(tmpmidragMin +" - " +polygons[j].midragMax + " " + polygons[j].mikrayadani);
+            
+             //   TxtMikra.push(polygons[j].midragMin +" - " +polygons[j].midragMax );
+           
+                
+                break;
+            }
+        }
+    console.log("mikra " + TxtMikra);
+
+    }
+ /*   if(str != "" && TxtMikra.length < uniqueArray.length)
   {
     if(update == 'true')
     {
@@ -425,7 +515,7 @@ let  str = document.getElementById("idtext").value;
 
     }
     
-  }
+  }*/
   console.log("mikra " + TxtMikra + " " + update);
   
   
@@ -570,7 +660,7 @@ document.getElementById('idHeight').addEventListener('click', () => {
 });
 function resetColor()
 {
-    polygons.forEach(p=> p.color = "#ffffff" + "95");
+    polygons.forEach(p=> p.color = whiteColor);
   //  circles.forEach(p=> p.color = "#ffffff" + "95");
   //  rects.forEach(p=> p.color = "#ffffff" + "95");
     
@@ -608,7 +698,15 @@ document.getElementById('idtextoff').addEventListener('click', () => {
       drawtext = 'true';
       document.getElementById('idtextoff').innerHTML = "Draw Text On";
 	}
- 	drawCanvas()
+    if(status3d == 'false')
+    {
+        drawCanvas();
+    }
+    else if (status3d == 'true')
+    {
+        DrawMidragColor();
+    }
+ 	//drawCanvas()
 });
 document.getElementById('idcurve').addEventListener('click', () => {
     if (drawcurve == 'true')
@@ -799,8 +897,15 @@ else if  (firstsize === 'true')
     canvas.height = canvas.height *2;
     firstsize = 'false';
 }
-   
-   drawCanvas();
+if(status3d == 'false')
+{
+    drawCanvas();
+}
+else if (status3d == 'true')
+{
+    DrawMidragColor();
+}
+
 }
 function validatecolor()
 {
@@ -835,12 +940,12 @@ function changeCsvMidrag()
     if(CsvMidrag == 'false')
     {
         CsvMidrag = 'true';
-        document.getElementById('idCsvMidrag').innerHTML ="Csv Midrag On";
+        document.getElementById('idCsvMidrag').innerHTML ="Excel Midrag On";
     }
     else{
         CsvMidrag = 'false'
         TxtMikra.length = 0 ;
-        document.getElementById('idCsvMidrag').innerHTML ="Csv Midrag Off";
+        document.getElementById('idCsvMidrag').innerHTML ="Excel Midrag Off";
     }
 }
 function AddVvlues(obj)
@@ -865,32 +970,60 @@ function UpdateMidragValuuesToObj(obj ,min ,max)
         {
             if(obj[i].text)
             {
-                num = Math.floor(obj[i].text);
-            let color = getShadeByValue(num, min, max);
-            let index = Math.floor(((num - min) / (max - min)) * (Shades.length - 1));
-            obj[i].index = index;
-          //  console.log("index : " + obj[i].index);
+            num = Math.floor(obj[i].text);
+          	let index;           
+            let step = (max - min)/sizeMidrag; 
+            let MaxMinIndex = [];
+            for(let j=0 ;j <= 10;j++)
+            {
+            	let tmp = (step *( j+1))+min;
+                if(tmp >= num)
+                {
+                index = j  ;
+                console.log("index : " + index + " step " + " tmp " + tmp + " j " + j);
+                break;
+                
+                }
+            
+            }
+        //    console.log("index : " + index);
+            let color = Shades[index].hex;
             obj[i].color = color ;
-            obj[i].neighborhoods = Math.floor(((max - min)/ (Shades.length - 1)) * index) + min;
-            obj[i].rova = Math.floor(((max - min)/ (Shades.length - 1))*(index + 1)) + min;
-         //   console.log("Color : " + obj[i].color);
+            obj[i].index = index;
+            let midragMax = ((index +1)* step)+min ;
+            let midragMin = midragMax - step;
+            console.log("min " + min + " max " + max );
+            console.log("index : " + obj[i].index + " min " + midragMin + " max " + midragMax + " text " + obj[i].text);
+            obj[i].midragMax = Math.floor( midragMax);
+            obj[i].midragMin =Math.floor( midragMin );
+            obj[i].neighborhoods = midragMin; 
+            obj[i].rova = midragMax;
+            console.log("Ezor " + obj[i].ezor + " text " + obj[i].text + " index : " + obj[i].index + " Color : " + obj[i].color);
 
             }
             else{
-                obj[i].color ="#FFFFFf" + "95";
+                obj[i].color =whiteColor;
+                obj[i].midragMax = undefined;
+                obj[i].midragMin = undefined;
+                obj[i].neighborhoods = undefined; 
+                obj[i].rova = undefined;
             }
         
         } 
         else if (CsvMidrag == 'true')
         {
-            if(obj[i].colorIndex && obj[i].text)
+            if(obj[i].colorIndex >= 0 && obj[i].text)
             {
             obj[i].color = Shades[Math.floor(obj[i].colorIndex)].hex ;
             document.getElementById('pos').innerHTML =obj[i].color;
           //  console.log(obj[i].color);
             }
             else{
-                obj[i].color ="#FFFFFf" + "95";
+                obj[i].color =whiteColor;
+                obj[i].midragMax = undefined;
+                obj[i].midragMin = undefined;
+                obj[i].neighborhoods = undefined; 
+                obj[i].rova = undefined;
             }
             
         }
@@ -1040,12 +1173,12 @@ function FindMaxValue(objshape)
     console.log(max)
     return max;
 }
-function getShadeByValue(value, min, max) {
-    let index = Math.floor(((value - min) / (max - min)) * (Shades.length - 1));
+/*function getShadeByValue(value, min, max) {
+    let index = Math.floor(((value - min) / (max - min)) * (sizeMidrag));
  //   console.log(index);
   //  console.log(Shades[index].hex);
     return Shades[index].hex;
-}
+}*/
 
 
 //document.getElementById('circle').addEventListener('click', () => status = 'circle');
@@ -1099,109 +1232,114 @@ function UploadNextCsvFiles()
 
 lstfilevalue = document.querySelector("input[list=lstCsvFiles]").value;
 let numfile;
-for(let i=0 ; i<files.length ; i++)
-{
-    if(files[i].name == lstfilevalue)
-{
-    numfile=i;
-    break;
-}
-
-}
-let file;
-if(numfile >=0 )
-{
-    file = structuredClone(files[numfile]);
-}
-else
-{
-    nextfiles++ ;
-    if(nextfiles >= files.length)
+    for(let i=0 ; i<files.length ; i++)
     {
-    nextfiles=0;
-    }
-console.log("files " + files);
-console.log("files.length " + files.length);
-file = structuredClone(files[nextfiles]);
+        if(files[i].name == lstfilevalue)
+        {
+        numfile=i;
+        break;
+        }
 
-}
+    }
+
+let file;
+    if(numfile >=0 )
+    {
+        file = structuredClone(files[numfile]);
+    }
+    else
+    {
+        nextfiles++ ;
+        if(nextfiles >= files.length)
+        {
+        nextfiles=0;
+        }
+    console.log("files " + files);
+    console.log("files.length " + files.length);
+    file = structuredClone(files[nextfiles]);
+
+    }
 //let file = structuredClone(files[nextfiles]);
 
-          let reader = new FileReader();
-document.getElementById('idfilename').innerHTML = file.name;
-          console.log("Selected file:", file);
-
-          reader.onload = (e) => {
-              let content = e.target.result;
-              rows = content.split('\n')
-                  .map(row => row.split(','));
-                UpdateShape(polygons, rows); // Ensure UpdateShape can handle the CSV data
-             //   UpdateShape(circles,rows);          
-             //   UpdateShape(rects,rows);
-              document.getElementById('pos').innerHTML = polygons.length;
-            DrawMidragColor();
-            TxtMikra.length = 0;
-            UpdateMikra(false);
-          //drawCanvas();
-            };
-
-          reader.onerror = (e) => {
-              console.error("Error reading file:", e);
-          };
-
-          reader.readAsText(file , 'UTF-8');
-          document.getElementById('lstcsv').value = '';
-         // document.getElementById('lstCsvFiles').innerHTML = '';
-          //DrawMidragColor();
-          //drawCanvas();
-       //   CSV.value = ''; 
-
-}
-
-if(CSV)
-{
-CSV.addEventListener('change', (event) => {
-    console.log("Enter file csv");
-    if (event.target.files.length === 0) {
-        console.warn("No file selected.");
-        return;
-    }
-
-    files =structuredClone(event.target.files);
-    console.log("files " + files);
-    console.log("files  " +files.length);
-    
-    let file =structuredClone(files[0]); 
     let reader = new FileReader();
-    
-    document.getElementById('idfilename').innerHTML = file.name;
+    document.getElementById('idfilename').innerHTML = file.name;//idTitleFile
+    document.getElementById('idTitleFile').innerHTML = file.name;
     console.log("Selected file:", file);
 
-    reader.onload = (e) => {
-        let content = e.target.result;
-        rows = content.split('\n')
-            .map(row => row.split(','));
-        UpdateShape(polygons, rows); // Ensure UpdateShape can handle the CSV data
-        //   UpdateShape(circles,rows);          
-        //   UpdateShape(rects,rows);
+    reader.onload = function (e)
+    {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+
+        // Get first sheet name
+        const sheetName = workbook.SheetNames[0];
+        document.getElementById("pos").innerHTML = "Sheet Name: " + sheetName; // Display sheet name
+
+        // Convert sheet to array list (2D array)
+        const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
+    //	document.getElementById("demo").textContent =sheet[1][0];
+    //   rows = sheet;
+        UpdateShape(polygons, sheet); // Ensure UpdateShape can handle the CSV data
         document.getElementById('pos').innerHTML = polygons.length;
         DrawMidragColor();
         TxtMikra.length = 0;
         UpdateMikra(false);
-        //drawCanvas();
+         
     };
+        reader.readAsArrayBuffer(file);
+        document.getElementById('lstcsv').value = '';
+};
 
-    reader.onerror = (e) => {
-        console.error("Error reading file:", e);
-    };
 
-    reader.readAsText(file , 'UTF-8');
-    //DrawMidragColor();
-    //drawCanvas();
+
+if(CSV)
+{
+    CSV.addEventListener('change', (event) => 
+    {
+        console.log("Enter file Excel");
+        if (event.target.files.length === 0) {
+            console.warn("No file selected.");
+            return;
+        }
+
+        files =structuredClone(event.target.files);
+    //   console.log("files " + files);
+    //    console.log("files  " +files.length);
+        
+        let file =structuredClone(files[0]); 
+        let reader = new FileReader();
+        
+        document.getElementById('idfilename').innerHTML = file.name;
+	    document.getElementById('idTitleFile').innerHTML = file.name;
+        console.log("Selected file:", file);
+                
+        reader.onload = function (e)
+        {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: "array" });
+
+            // Get first sheet name
+            const sheetName = workbook.SheetNames[0];
+            document.getElementById("pos").innerHTML = "Sheet Name: " + sheetName; // Display sheet name
+
+            // Convert sheet to array list (2D array)
+            const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
+        //	document.getElementById("demo").textContent =sheet[1][0];
+        //   rows = sheet;
+            UpdateShape(polygons, sheet); // Ensure UpdateShape can handle the CSV data
+            document.getElementById('pos').innerHTML = polygons.length;
+            DrawMidragColor();
+            TxtMikra.length = 0;
+            UpdateMikra(false);
+            
+        };
+        reader.readAsArrayBuffer(file);
+        
+
     CSV.value = ''; 
     console.log(files);
-//  clearDatalist(lstCsvFiles);
-          lstCsvFiles.replaceChildren()
+    
+    lstCsvFiles.replaceChildren()
     if(files)
     {
         for(let i=0 ; i< files.length;i++)
@@ -1210,35 +1348,10 @@ CSV.addEventListener('change', (event) => {
         option.value = files[i].name;
         list.appendChild(option);
         }    
-    }          
-});    
-      
-}
+    }
+});          
+}  
 
-
-// Usage
-
-/*CSV.addEventListener('click', (event) => {
-    let file = event.target.files[0];
-    let reader = new FileReader();
-    console.log(file);
-    console.log("file");
-
-    reader.onload = (e) => {
-        let content = e.target.result;
-        let rows = content.split('\n')
-            .map(row => row.split(','));
-          //UpdateShape(circles,rows);
-          UpdateShape(polygons,rows);
-          //UpdateShape(rects,rows);
-      
-    };
-
-    reader.readAsText(file);
-    document.getElementById('pos').innerHTML =polygons.length;
-  //  if(polygons.length>0){drawCanvas();document.getElementById('idupdatedata').innerHTML ="draw csv";}
-    
-});*/
 function UpdateShape(shape,rows)
 {
 	for (let i = 0; i < shape.length; i++)
@@ -1247,6 +1360,9 @@ function UpdateShape(shape,rows)
     shape[i].index = undefined;
     shape[i].colorIndex = undefined;
     shape[i].CsvMikra = undefined;
+    shape[i].mikrayadani = undefined;
+    shape[i].rova = undefined;
+    shape[i].neighborhoods = undefined;
     }
     for (let i = 0; i < shape.length; i++)
     {
@@ -1255,12 +1371,14 @@ function UpdateShape(shape,rows)
         for(let j=0;j<rows.length;j++)
         {
             //if(rows[j][0].trim() == shape[i].ezor.trim())
-            if(rows[j][0].trim() == shape[i].ezor)
+            if(rows[j][0] == shape[i].ezor)
             {
             document.getElementById('pos').innerHTML ="good";
+            console.table(rows[j][0] + " " + rows[j][1] + " " + rows[j][2] + " " +rows[j][3] );
             shape[i].text = rows[j][1];
             shape[i].colorIndex = rows[j][2];
             shape[i].CsvMikra = rows[j][3];
+            shape[i].mikrayadani = rows[0][1];
            // polygons[i].colorIndex= index;
             }
         }
@@ -1394,6 +1512,7 @@ function drawPolygon(points, color, text = "",PosTx , PosTy, shape , temp = fals
    }
    ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
     if (!temp) ctx.closePath();
+    //console.log(shape.ezor + " color " + color);
     ctx.strokeStyle = "DarkSlateGray";
     ctx.stroke();
     ctx.fillStyle = color;
@@ -1435,14 +1554,14 @@ function drawArc(points, color , text = "") {
     }
    
 }
-function GetfillStyle(shape)
+function GetfillStyleCsvTrue(shape)
 {
  lstColor = document.querySelector("input[list=color-test]").value;
  let fillstyle;
   switch(lstColor)
   {
   case "Green":
-    if(shape.index >=6 || shape.colorIndex >= 6)
+    if( shape.colorIndex >= 6)
         {
         fillstyle = "white";
         }
@@ -1452,7 +1571,7 @@ function GetfillStyle(shape)
         }
     break;
   case "Blue":
-    if(shape.index >=4 || shape.colorIndex >= 4)
+    if( shape.colorIndex >= 4)
         {
         fillstyle = "white";
         }
@@ -1462,7 +1581,7 @@ function GetfillStyle(shape)
         }
     break;
   case "Red":
-      if(shape.index >=5 || shape.colorIndex >= 5)
+      if(shape.colorIndex >= 5)
         {
         fillstyle = "white";
         }
@@ -1472,7 +1591,7 @@ function GetfillStyle(shape)
         }
       break;
   case "Yellow":
-      if(shape.index >=6 || shape.colorIndex >= 6)
+      if( shape.colorIndex >= 6)
         {
         fillstyle = "white";
         }
@@ -1482,7 +1601,7 @@ function GetfillStyle(shape)
         }
       break;
   case "Gray":
-      if(shape.index >=4 || shape.colorIndex >= 4)
+      if( shape.colorIndex >= 4)
         {
         fillstyle = "white";
         }
@@ -1492,7 +1611,7 @@ function GetfillStyle(shape)
         }
       break;
   case "Mixed":
-        if(shape.index >=7 || shape.colorIndex >= 7 || shape.index == 3 || shape.colorIndex == 3)
+        if(shape.colorIndex >= 7 || shape.colorIndex == 3)
         {
         fillstyle = "white";
         }
@@ -1502,7 +1621,88 @@ function GetfillStyle(shape)
         }
         break;
   default:
-    if(shape.index >=5 || shape.colorIndex >= 5)
+    if(shape.colorIndex >= 5)
+        {
+        fillstyle = "white";
+        }
+        else
+        {
+        fillstyle = "black";
+        }
+    
+    
+  }
+  document.getElementById('pos').innerHTML = fillstyle;
+  return fillstyle;
+}
+function GetfillStyle(shape)
+{
+ lstColor = document.querySelector("input[list=color-test]").value;
+ let fillstyle;
+  switch(lstColor)
+  {
+  case "Green":
+    if(shape.index >=6)
+        {
+        fillstyle = "white";
+        }
+        else
+        {
+        fillstyle = "black";
+        }
+    break;
+  case "Blue":
+    if(shape.index >=4 )
+        {
+        fillstyle = "white";
+        }
+        else
+        {
+        fillstyle = "black";
+        }
+    break;
+  case "Red":
+      if(shape.index >=5 )
+        {
+        fillstyle = "white";
+        }
+        else
+        {
+        fillstyle = "black";
+        }
+      break;
+  case "Yellow":
+      if(shape.index >=6 )
+        {
+        fillstyle = "white";
+        }
+        else
+        {
+        fillstyle = "black";
+        }
+      break;
+  case "Gray":
+      if(shape.index >=4 )
+        {
+        fillstyle = "white";
+        }
+        else
+        {
+        fillstyle = "black";
+        }
+      break;
+  case "Mixed":
+        if(shape.index >=7 ||  shape.index == 3 )
+        {
+        fillstyle = "white";
+        }
+        else
+        {
+        fillstyle = "black";
+        }
+        break;
+  default:
+    if(shape.index >=5 )
         {
         fillstyle = "white";
         }
@@ -1533,14 +1733,21 @@ function drawTextInShape(points, text , PosTx , PosTy ,shape, sug) {
         {
         ctx.fillStyle = "black";
         }*/
-      let  tmpcolor = "#ffffff" + "95";
+      let  tmpcolor = whiteColor;
       if(shape.color == tmpcolor)
       {
       ctx.fillStyle = "black"
       }
       else
       {
-      ctx.fillStyle =   GetfillStyle(shape)
+        if(CsvMidrag == 'false')
+        {
+        ctx.fillStyle =   GetfillStyle(shape)
+        }
+        else if(CsvMidrag == 'true')
+        {
+        ctx.fillStyle =   GetfillStyleCsvTrue(shape)
+        }
       }
     }
     else
@@ -1746,25 +1953,52 @@ if (clickedShape && statusUpdateData == 'false')
         if(ColorStatus == 'true')
         {
           selectedPolygon.color = currentColor;
+		if(status3d == 'false')
+		{
+		drawCanvas();
+		}
+		else if (status3d == 'true')
+		{
+		DrawMidragColor();
+		}
         }
         else
         {
-
-        document.getElementById('idneighborhoods').value = selectedPolygon.CsvMikra  ;
-        if(selectedPolygon.index != undefined){
-            document.getElementById('idrova').value = selectedPolygon.index  ;
-        }else if (selectedPolygon.colorIndex != undefined){
-            document.getElementById('idrova').value = selectedPolygon.colorIndex  ;
-        }
-
+            if (CsvMidrag == 'false')
+            {
+            document.getElementById('idneighborhoods').value = selectedPolygon.midragMin  ;
+            document.getElementById('idrova').value = selectedPolygon.midragMax ;
+            }
+            else
+            {
+            document.getElementById('idneighborhoods').value = selectedPolygon.CsvMikra  ;
+           /* if(selectedPolygon.index != undefined){
+                document.getElementById('idrova').value = selectedPolygon.index  ;
+            }else*/
+                if (selectedPolygon.colorIndex != undefined)
+                {
+                    document.getElementById('idrova').value = selectedPolygon.colorIndex  ;
+                }
+                else
+                {
+                    document.getElementById('idrova').value ="";
+                }
+            }
         
         document.getElementById('idezor').value = selectedPolygon.ezor;
         document.getElementById('idtext').value = selectedPolygon.text;
         //console.log(selectedPolygon.text);
         
         }
-        
-        drawCanvas();
+   /*     if(status3d == 'false')
+        {
+            drawCanvas();
+        }
+        else if (status3d == 'true')
+        {
+            DrawMidragColor();
+        }*/
+      //  drawCanvas();
           return;
     }
 
@@ -1833,5 +2067,3 @@ function getClickedShape(x, y) {
     </script>
 </body>
 </html>
-
-
