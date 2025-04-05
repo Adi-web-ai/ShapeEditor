@@ -1,2069 +1,441 @@
+
+
+
 <!DOCTYPE html>
-<html>
+<html lang="he">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-site-verification" content="piSmbBGKAUaYGGzsSzF8xU8wCMAxMmrcB5WpgQrAuqo" />
+    <title>ציור ושמירת פוליגונים עם Leaflet</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://rawgit.com/mapbox/leaflet-image/gh-pages/leaflet-image.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image-more/3.0.0/dom-to-image-more.min.js"></script>
+    
+    <link rel="stylesheet" href="dist/Leaflet.BigImage.min.css">
+    <script src="dist/Leaflet.BigImage.min.js"></script>
     <style>
-    body {
-        margin: 0;
-        padding: 0;
-        font-family: Arial, sans-serif;
-        background-color: #f5f7fa;
-        color: #333;
-    }
-
-    #header {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        background: linear-gradient(90deg, #0066cc, #0099ff);
-        padding: 15px;
-        color: white;
-        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-        z-index: 1000;
-        text-align: center;
-     /*   display: flex;*/
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-around;
-        transition: max-height 0.3s ease-out;
-        overflow: hidden;
-        max-height: 300px;
-    }
-    #header.collapsed {
-            max-height: 0;
-            padding: 0;
-    }
-    #header h1 {
-            font-size: 20px;
-            padding: 05px;
-            margin: 0;
-         /*   display: inline;*/
-    }
-    #toggle-header {
-            position: fixed;
-            top: 5px;
-            right: 10px;
-            background-color: #ff9800;
-            border: none;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            z-index: 1100;
-        }
-    #next-header {
-        position: fixed;
-        top: 35px;
-        right: 10px;
-        background-color: #ff9800;
-        border: none;
-        color: white;
-        padding: 5px 10px;
-        border-radius: 5px;
-        cursor: pointer;
-        z-index: 1100;
-    }
-
-    .content {
-        margin-top: 140px;
-        text-align: center;
-    }
-
-    button {
-        background-color: #008cba;
-        border: none;
-        color: white;
-        padding: 10px 15px;
-        margin: 5px;
-        border-radius: 5px;
-        font-size: 14px;
-        cursor: pointer;
-        transition: 0.3s;
-    }
-    .btn{
-    border-radius: 15px;
-    background-color: yellow;
-    color : black;
-    }
-
-    button:hover {
-       background-color: #7f0059;
-       
-    }
-
-    canvas {
-        border: 2px solid #333;
-        background: #e0f7fa;
-        margin-top: 20px;
-    }
-</style>
-<meta name="google-site-verification" content="piSmbBGKAUaYGGzsSzF8xU8wCMAxMmrcB5WpgQrAuqo" />
-<title>Shape Editor</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+        #map { height: 690px; width:800px;}
+    </style>
 </head>
 <body>
-    <button id="toggle-header">Toggle Menu</button>
-    <button id="next-header" onclick = "UploadNextCsvFiles()">Next File</button>
-    <!-- Fixed Header -->
-    <div id="header">
-        <h1 class="text-2xl font-bold mb-4">Shape On The Map 56 By Adi Shamir</h1>
-        
-        <button class="btn" id="poly" onmouseover="inChangeBtnColor(this , 'poly')" onmouseout="outChangeBtnColor(this, 'poly')" >Polygon</button>
-     <!--   <button id="circle" class="btn" onmouseover="inChangeBtnColor(this , 'circle')" onmouseout="outChangeBtnColor(this, 'circle')">Circle</button>
-        <button id="rect"  class="btn" onmouseover="inChangeBtnColor(this , 'rect')" onmouseout="outChangeBtnColor(this, 'rect')">Rectangle</button>-->
-        <button class="button" id="idcurve" onmouseover="inChangeBtnColor(this , 'idcurve')" onmouseout="outChangeBtnColor(this, 'idcurve')">Draw Curve Off</button>
-        <button class="button" id="idtextoff" onmouseover="inChangeBtnColor(this , 'idtextoff')" onmouseout="outChangeBtnColor(this, 'idtextoff')">Draw Text Off</button>
-        <button class="button" id="idUpdatePosText" onmouseover="inChangeBtnColor(this , 'idUpdatePosText')" onmouseout="outChangeBtnColor(this, 'idUpdatePosText')">PosT Off</button>
-
-        <button class="button" id="delshape">Del Shape</button>
-        <button class="button" id="idclearvar" onclick="ResizeMap()">Resize Canvas</button>
-        <button class="button" id="save-img">Save Image</button>
-        <button class="button" id="save-shapes">Save All Shapes</button>
-        
-        <input type="color" id="color-picker" value="#FFFFFF" class="mr-2" />
-        <button class="button" id="idcolorstatus" onmouseover="inChangeBtnColor(this , 'idcolorstatus')" onmouseout="outChangeBtnColor(this, 'idcolorstatus')" onclick = "ChangeColorStatus()">Update Color Off</button>
-        <button class="button" id="idresetcolor">Reset Color</button>
-        <br>
-        <label id="idfilename"></label>
-        <button class="button" id="idNextFiles" onclick = "UploadNextCsvFiles()">Next File</button>
-        
-        <input  id="lstcsv" name="myCsvFiles" list="lstCsvFiles" />
-        <datalist id="lstCsvFiles"></datalist>
-        
-        <button class="button" id="idMidragColor" onclick = "DrawMidragColor()">Draw Midrag Color</button>
-        <button class="button" id="idMidragColor" onclick = "ChangeSizeOfMidrag()">Size</button>
-        <input list="lst-size-midrag" type="text" size="5px">
-        <datalist id="lst-size-midrag">
-            <option value="3">
-            <option value="4">
-            <option value="5">
-            <option value="6">
-            <option value="7">
-            <option value="8">
-            <option value="9">
-            <option value="10"></option>
-        </datalist>
-
-        <button class="button" id="idHeight" > 1</button>
-        <button class="button" id="id3d" onmouseover="inChangeBtnColor(this , 'id3d')" onmouseout="outChangeBtnColor(this, 'id3d')" >3D Off</button>
-        <input list="color-test" type="text" size="10px">
-        <datalist id="color-test">
-            <option value="Green">
-            <option value="Blue">
-            <option value="Red">
-            <option value="Yellow">
-            <option value="Gray">
-            <option value="Mixed"></option>
-        </datalist>
-        <button class="button" id="idcolorplate" onclick = "LoadColorPlate()">Color Plate</button>
-        <br>
-		
-        <button class="button" id="iddownloadexcel" onclick = "DownLoadExcel()">DL Excel</button>
-        <button class="button" id="idCsvMidrag" onmouseover="inChangeBtnColor(this , 'idCsvMidrag')" onmouseout="outChangeBtnColor(this, 'idCsvMidrag')" onclick = "changeCsvMidrag()">Excel Midrag Off</button>
-        
-        Load Excel :<input type="file" accept=".xlsx, .xls" id="csv" multiple>
-        Load Shapes :  <input type="file" id="load-shapes" accept=".json" class="mr-2" />
-        Load Image :  <input type="file" id="upload-image" accept="image/*" class="mr-2" size="100"/>
-       
-        <br><button class="button" id="idupdatedata" onmouseover="inChangeBtnColor(this , 'idupdatedata')" onmouseout="outChangeBtnColor(this, 'idupdatedata')" onclick = "UpdateData()">Update Data Off</button>
-        Ezor : <input id="idezor"/>
-        Min : <input id="idneighborhoods" />
-        Max : <input id="idrova"/>
-        Text : <input id="idtext"/>
-       <button class="button" id="idupdatemikra" onmouseover="inChangeBtnColor(this , 'idupdatemikra')" onmouseout="outChangeBtnColor(this, 'idupdatemikra')" onclick = "UpdateMikra('true')">Update Mikra</button>
-        <label id="pos">message :</label>
-    </div>
-
-    <!-- Content (Moves when scrolling) -->
-    <div class="content">
-	<br> <br> <br><label id="idTitleFile">message :</label>
-     <br> <br> <canvas id="canvas" width="2500" height="2500" class="border"></canvas>
-     
-    </div>
-  <script>
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-let image = null;
-let polygons = [];
-let circles = [];
-let rects = [];
-let currentPolygon = [];
-let currentCircle = [];
-let currentRect = [];
-let colorPicker = document.getElementById('color-picker');
-let currentColor = colorPicker.value + '80'; // Make color transparent
-let status ;
-let delstatus = false;
-let ezor = 0;
-let neighborhoods = null;
-let rova ;
-let statusUpdateData = 'false';
-let ColorStatus = 'false';
-let Shades = [];
-let CsvMidrag = 'false';
-let lstColor = null ;
-let rows = [];
-let firstsize = 'false'; 
-let imgWidth;
-let imgHeight;
-let drawcurve = 'false' ;
-let drawtext = 'false';
-let status3d = 'false';
-let updatePosText = 'false';
-let clonedPolygons ;
-let stepHeight3d = 1;
-let AllTextValues = [] ;
-let rowTxtIndex = 0;
-let whiteColor = "#00000000" ; //"#ffffff" + "30";
-
-let TxtMikra = [] ;
-// Table settings
-let MikraCols = 2;
-let MikraRows = 3;
-let cellWidth = 100;
-let cellHeight = 35;
-let startX = 100;  // Starting X position
-let startY = 800;  // Starting Y position
-
-let nextfiles = 0 ;
-let files = []; 
-let list = document.getElementById('lstCsvFiles');
-
-let sizeMidrag = 4;
-const greenShades = [
-  { name: "ירוק כמעט לבן", hex: "#F0FFF0" },
-  { name: "ירוק בהיר מאוד", hex: "#C8FFC8" },
-  { name: "ירוק פסטלי", hex: "#96FF96" },
-  { name: "ירוק טבעי", hex: "#64FF64" },
-  { name: "ירוק רענן", hex: "#32FF32" },
-  { name: "ירוק דשא", hex: "#00E600" },
-  { name: "ירוק חי", hex: "#00C800" },
-  { name: "ירוק חזק", hex: "#00A000" },
-  { name: "ירוק כהה", hex: "#007A00" },
-  { name: "ירוק עמוק מאוד", hex: "#005000" }
-];
-const redShades = [
-  { name: "אדום כמעט לבן", hex: "#FFF0F0" },
-  { name: "אדום בהיר מאוד", hex: "#FFC8C8" },
-  { name: "אדום פסטלי", hex: "#FF9696" },
-  { name: "אדום טבעי", hex: "#FF6464" },
-  { name: "אדום רענן", hex: "#FF3232" },
-  { name: "אדום דובדבן", hex: "#E60000" },
-  { name: "אדום חי", hex: "#C80000" },
-  { name: "אדום חזק", hex: "#A00000" },
-  { name: "אדום כהה", hex: "#7A0000" },
-  { name: "אדום עמוק מאוד", hex: "#500000" }
-];
-const yellowShades = [
-  { name: "צהוב כמעט לבן", hex: "#FFFFF0" },
-  { name: "צהוב בהיר מאוד", hex: "#FFFFC8" },
-  { name: "צהוב פסטלי", hex: "#FFFF96" },
-  { name: "צהוב טבעי", hex: "#FFFF64" },
-  { name: "צהוב רענן", hex: "#FFFF32" },
-  { name: "צהוב זהב", hex: "#E6E600" },
-  { name: "צהוב חי", hex: "#C8C800" },
-  { name: "צהוב חזק", hex: "#A0A000" },
-  { name: "צהוב כהה", hex: "#7A7A00" },
-  { name: "צהוב עמוק מאוד", hex: "#505000" }
-];
-const blueShades = [
-  { name: "כחול כמעט לבן", hex: "#F0F8FF" },
-  { name: "כחול בהיר מאוד", hex: "#C8E0FF" },
-  { name: "כחול פסטלי", hex: "#96C8FF" },
-  { name: "כחול שמיים", hex: "#64AFFF" },
-  { name: "כחול רענן", hex: "#3296FF" },
-  { name: "כחול חי", hex: "#007FFF" },
-  { name: "כחול מים עמוקים", hex: "#0066CC" },
-  { name: "כחול חזק", hex: "#0055A0" },
-  { name: "כחול כהה", hex: "#003F7A" },
-  { name: "כחול עמוק מאוד", hex: "#002850" }
-];
-const grayShades = [
-  { name: "אפור כמעט לבן", hex: "#F0F0F0" },
-  { name: "אפור בהיר מאוד", hex: "#D8D8D8" },
-  { name: "אפור פסטלי", hex: "#BEBEBE" },
-  { name: "אפור טבעי", hex: "#A0A0A0" },
-  { name: "אפור רענן", hex: "#888888" },
-  { name: "אפור בינוני", hex: "#707070" },
-  { name: "אפור כהה", hex: "#585858" },
-  { name: "אפור עמוק", hex: "#404040" },
-  { name: "אפור חזק", hex: "#282828" },
-  { name: "אפור כמעט שחור", hex: "#101010" }
-];
-const mixedShades = [
-{ name: "ירוק טבעי", hex: "#64FF64" },
-{ name: "ירוק חזק", hex: "#00A000" },
-{ name: "אדום טבעי", hex: "#FF6464" },
-{ name: "אדום חזק", hex: "#A00000" },
-{ name: "צהוב טבעי", hex: "#FFFF64" },
-{ name: "צהוב חזק", hex: "#A0A000" },
-{ name: "כחול שמיים", hex: "#64AFFF" },
-{ name: "כחול חזק", hex: "#0055A0" },
-{ name: "אפור טבעי", hex: "#A0A0A0" },
-{ name: "אפור חזק", hex: "#282828" }
-
-];
-
-function DownLoadExcel()
-{
-   console.log(polygons);
-    if (polygons.length == 0) {return ;}
-    let data = polygons;
-   /* if(EzorNot)
-    {
-        data =EzorNot;
-    }
-    else{
-        data = polygons;
-    }*/
+    <label for="colorPicker">בחר צבע:</label>
+    <input type="color" id="colorPicker" value="#ff0000">
+    <label for="valueInput">הזן ערך:</label>
+    <input type="text" id="valueInput" placeholder="הכנס ערך">
+    <button onclick="downloadPolygons()">📥 שמירת פוליגונים</button>
+    <button onclick="downloadBuildingsData()">📥 הורדת נתוני בניינים</button>
+    <button onclick="downloadPolygonsToExcel()">📊 הורדת פוליגונים לאקסל</button>
+    <button onclick="loadNextExcel()">📊 Next Excel</button>
+    <input type="file" id="fileInput" accept=".*json" onchange="loadPolygons(event)">
+    <label for="myCheck">Color:</label> 
+	<input type="checkbox" id="myCheck" onclick="myFunction()">
+    <input type="file" id="excelInput" accept=".xlsx" onchange="loadExcel()" multiple>
+    <div id="mainContainer" style="display: flex; flex-direction: row; align-items: flex-start;">
+    <div id="mainContainer" style="display: flex; flex-direction: row; align-items: flex-start;">
+        <div id="map" style="height: 690px; width: 800px; margin-left: 20px;"></div>
     
-    // Create a new workbook
-    const workbook = XLSX.utils.book_new();
+        <div style="display: flex; gap: 40px; margin: 20px;">
+            <!-- טבלת ערכים -->
+            <div>
+                <h3>טבלת ערכים</h3>
+                <table id="valuesTable" border="1" style="border-collapse: collapse; width: 300px;">
+                    <thead>
+                        <tr><th>NUM</th><th>MIKRA</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        
+            <!-- טבלת פוליגונים -->
+            <div>
+                <h3>טבלת פוליגונים</h3>
+                <table id="polygonTable" border="1" style="border-collapse: collapse; width: 300px;">
+                    <thead>
+                        <tr><th>ID</th><th>VALUE</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        
+        </div>
     
-    // Convert array to worksheet
-   // const worksheet = XLSX.utils.aoa_to_sheet(data);//Creates a worksheet from an array of arrays.
-    const worksheet = XLSX.utils.json_to_sheet(data);// Creates a worksheet from an array of objects.
     
-    // Append worksheet to workbook
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
-
-    // Export to file
-    XLSX.writeFile(workbook, "data.xlsx");
-}
-function ChangeSizeOfMidrag()
-{
-    let lstsize = document.querySelector("input[list=lst-size-midrag").value;
-    if(lstsize)
-    {
-        sizeMidrag = lstsize ;
-    }
-    else{
-        sizeMidrag = 4;
-    }
+        
     
+    <script>
+        var map = L.map('map').setView([32.0853, 34.7818], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+        var drawnItems = new L.FeatureGroup();
+        map.addLayer(drawnItems);
+        var drawControl = new L.Control.Draw({
+            edit: { featureGroup: drawnItems },
+            draw: { polyline: true, polygon: true, rectangle: true, circle: true, marker: true }
+        });
+        map.addControl(drawControl);
+        
+        var colorMap = ["#FF0000", "#FF7F00", "#FFFF00", "#7FFF00", "#00FF00", "#00FF7F", "#00FFFF", "#007FFF", "#0000FF", "#7F00FF"];
+        var polygonCounter = 0;
 
-}
-function LoadColorPlate()
-{
-    window.open("%E2%80%8F%E2%80%8Fcolor_editor_4.html")
-  //  window.open("file:///C:/Users/adi/Desktop/shape%20editor/shape%20editor%2048/%E2%80%8F%E2%80%8Fcolor_editor_4.html");
-}
-
-
-
-//document.getElementById('circle').disabled = false;
-//document.getElementById('rect').disabled = false;
-function GetIndexColorArray()
-{
-
-let arrindex=[];
-polygons.forEach(p=>{
-    if(CsvMidrag == 'false')
-    {
- //   if(p.index)
- //   {
-        if(p.index != undefined)
-        {
-        arrindex.push(p.index);
-        }
-
-   // }
-    }
-    else if(CsvMidrag == 'true')
-    {
- //   if(p.colorIndex)
-  //  {
-        if(p.colorIndex != undefined)
-        {
-        arrindex.push(p.colorIndex);
-        }
-
-  //  }
-    }
-});
-console.log("arrindex" + arrindex);
-let uniqueArray = [...new Set(arrindex)];
-uniqueArray.sort();
-console.log("uniqueArray" + uniqueArray);
-return uniqueArray;
-}
-function GetColors()
-{
-// Colors for each row in the first column
-let colors =[];// ["lightblue", "lightgreen", "lightcoral"];
-validatecolor()
-if(Shades.length != 0)
-{
-
-colors =Shades;
-
-}
-else
-{
-colors = greenShades;
-
-}
-
-return colors;
-}
-function UpdateMikraByCsv()
-{
-  // Draw text inside the cells
-ctx.font = "16px miriam";
-ctx.fillStyle = "black";
-ctx.textAlign = "center";
-ctx.textBaseline = "middle";
-
-let startX = canvas.width * 0.60;
-startX = GetStartx();
-
-let uniqueArray =GetIndexColorArray();
-
-console.log("mikra " + TxtMikra );
-
-TxtMikra.length = 0 ;
-    for(let i=0; i< uniqueArray.length ; i++)
-    {
-        for(let j = 0 ; j<polygons.length;j++)
-        {
-            if(polygons[j].colorIndex == uniqueArray[i])
-            {
-                TxtMikra.push(polygons[j].CsvMikra);
-                break;
-            }
-        }
-    console.log("mikra " + TxtMikra);
-
-    }
-cellWidth = 200;
-for (let i = 0; i < TxtMikra.length  && i <uniqueArray.length ; i++)
-    {
-    let text= `${TxtMikra[i]}`;
-    //  let textX = startX + 1 * cellWidth + cellWidth / 2;
-    let textX = startX  +250;
-    let textY = startY + i * cellHeight + cellHeight / 2;
-    ctx.fillText(text, textX, textY);
-
-    }
-}
-//let  strm ="";
-function UpdateMikra(update)
-{
-  // Draw text inside the cells
-ctx.font = "16px Arial";
-ctx.fillStyle = "black";
-ctx.textAlign = "center";
-ctx.textBaseline = "middle";
-
-let startX = canvas.width * 0.60;
-startX = GetStartx();
-// str  = document.getElementById("idtext").value;
- /*   if(update == 'true')
-    {
-    strm  = document.getElementById("idtext").value;
-    }*/
-  //alert(str)
- /* if (strm ==='del')
-  {
-  //TxtMikra.length = 0;
-  strm = "";
-  drawCanvas();
-  //DrawTable();
-  return;
-  }*/
- let uniqueArray =GetIndexColorArray();
- if(CsvMidrag === 'true')
- {
-    UpdateMikraByCsv();
-
- }
- else
- {
-    
-    TxtMikra.length = 0 ;
-    for(let i=0; i< uniqueArray.length ; i++)
-    {
-        for(let j = 0 ; j<polygons.length;j++)
-        {
-            if(polygons[j].index == uniqueArray[i])
-            {
-           		let tmpmidragMin = polygons[j].midragMin;
-                if(i == 0)
-                {
-                tmpmidragMin = polygons[j].midragMin;
-                }
-                else
-                {
-                tmpmidragMin = polygons[j].midragMin +1 ;
-                }
-                TxtMikra.push(tmpmidragMin +" - " +polygons[j].midragMax + " " + polygons[j].mikrayadani);
+        map.on('draw:created', function (event) {
+            var layer = event.layer;
+            var color = document.getElementById("colorPicker").value;
+            var value = document.getElementById("valueInput").value || "";
+            var polygonID = ++polygonCounter;
             
-             //   TxtMikra.push(polygons[j].midragMin +" - " +polygons[j].midragMax );
-           
-                
-                break;
-            }
-        }
-    console.log("mikra " + TxtMikra);
+            if(map.control){console.log("marker");}
+            layer.setStyle({ color: color, fillColor: color, fillOpacity: 0.5 });
+            if (!layer.feature) layer.feature = { type: "Feature", properties: {} };
+            layer.feature.properties.color = color;
+            layer.feature.properties.id = polygonID;
+            layer.feature.properties.value = value;
 
-    }
- /*   if(str != "" && TxtMikra.length < uniqueArray.length)
-  {
-    if(update == 'true')
-    {
-        TxtMikra.push(str);
+            drawnItems.addLayer(layer);
+        });
+        function updateValuesTable(data) {
+    const valuesTableBody = document.querySelector("#valuesTable tbody");
+    const polygonTableBody = document.querySelector("#polygonTable tbody");
+    valuesTableBody.innerHTML = "";
+    polygonTableBody.innerHTML = "";
 
-    }
-    
-  }*/
-  console.log("mikra " + TxtMikra + " " + update);
-  
-  
-    
-      cellWidth = 200;
-      for (let i = 0; i < TxtMikra.length  && i <uniqueArray.length ; i++)
-      {
-        let text= `${TxtMikra[i]}`;
-      //  let textX = startX + 1 * cellWidth + cellWidth / 2;
-      if(text == undefined){ continue;}  
-      let textX = startX  +250;
-        let textY = startY + i * cellHeight + cellHeight / 2;
-        ctx.fillText(text, textX, textY);
+    const seenNums = new Set();
+    const seenIDs = new Set();
 
-      }
- }
-  
-}
+    data.forEach(row => {
+        // טבלת ערכים (NUM + MIKRA)
+        if (row.NUM != null && row.MIKRA != null && !seenNums.has(row.NUM)) {
+            seenNums.add(row.NUM);
+            const tr = document.createElement("tr");
 
-function GetStartx()
-{
-    let startX;
-    if (firstsize === 'false')
-    {
-    startX = canvas.width * 0.60; 
-    }
-    else if (firstsize === 'true')
-    {
-    let tmpx = canvas.width * 2;
-    startX = tmpx * 0.6;
-    }
-    return startX;
-}
-function DrawTable()
-{
+            const tdNum = document.createElement("td");
+            tdNum.textContent = row.NUM;
+            tdNum.style.backgroundColor = colorMap[row.NUM - 1] || "#000";
+            tdNum.style.color = "#fff";
+            tdNum.style.textAlign = "center";
 
-let MikraCols = 2;
-let MikraRows = 3;
-let cellWidth = 100;
-let cellHeight = 35;
-let startX = canvas.width * 0.60;  // Starting X position
-let startY = 800;  // Starting Y position
-let colors =GetColors();
-let uniqueArray =GetIndexColorArray();
-//console.log("canvas.width " + canvas.width + " startx " + startX );
-startX = GetStartx();
-//console.log("canvas.width " + canvas.width + " startx " + startX );
+            const tdMikra = document.createElement("td");
+            tdMikra.textContent = row.MIKRA;
 
-//console.log("canvas.width " + canvas.width + " startx " + startX );
-MikraRows = uniqueArray.length;
-//console.log("MikraRows " + MikraRows);
-
-// Fill the first column with different colors per row
-  for (let i = 0; i < MikraRows; i++)
-  {
-  //console.log("color: " + colors[Math.floor(uniqueArray[i])].hex);
-      ctx.fillStyle = colors[Math.floor(uniqueArray[i])].hex;  // Change color for each row
-      let x = startX ;
-      let y = startY + i * cellHeight;
-      ctx.fillRect(x, y, cellWidth, cellHeight);
-     // console.log("x y " + x +" " +y + " " + cellWidth + " " + cellHeight);
-  }
-
-// Draw table grid
-//ctx.shadowColor = colors[Math.floor(uniqueArray[2])].hex;
-//ctx.shadowOffsetX = 2;
-//ctx.shadowOffsetY = 2;
-//ctx.lineWidth = 4;
-let mid = Math.floor(uniqueArray.length /2);
-ctx.strokeStyle = colors[Math.floor(uniqueArray[mid])].hex;
-  for (let i = 0; i <= MikraRows; i++)
-  {
-      let y = startY + i * cellHeight;
-      ctx.moveTo(startX, y);
-      ctx.lineTo(startX + MikraCols * (cellWidth +100 ), y);
-     //  console.log("MikraCols" + MikraRows + " " + MikraCols)
-      // console.log("startX " + startX  + " " + y)
-  }
-  for (let j = 0; j <= MikraCols; j++)
-  {
-
-     if(j==2)
-     {
-     cellWidth =200;
-     }
-      let x = startX + j * cellWidth;
-      ctx.moveTo(x, startY);
-      ctx.lineTo(x, startY + MikraRows * cellHeight);
-
-  }
-ctx.stroke(); // Draw the grid
-
-// Draw text inside the cells
-ctx.font = "16px Arial";
-ctx.fillStyle = "black";
-ctx.textAlign = "center";
-ctx.textBaseline = "middle";
-
-
-for (let i = 0; i < MikraRows; i++) {
-  let text= `${uniqueArray[i]}`;
-  let textX = startX + cellWidth / 4;
-  let textY = startY + i * cellHeight + cellHeight / 2;
-  ctx.fillText(text, textX, textY);
- 
-}
-if(TxtMikra.length > 0)
-{
-    UpdateMikra(false);
-}
-
-}
-document.getElementById("toggle-header").addEventListener("click", function() {
-            document.getElementById("header").classList.toggle("collapsed");
-});
-document.getElementById('idUpdatePosText').addEventListener('click', () => {
-   
-   if(updatePosText == 'false')
-   {
-    updatePosText = 'true';
-    document.getElementById('idUpdatePosText').innerHTML = "PosT On";
-   }else if(updatePosText == 'true')
-   {
-       updatePosText = 'false';
-       document.getElementById('idUpdatePosText').innerHTML = "PosT Off";
-   }
-   
-   
-});
-document.getElementById('idHeight').addEventListener('click', () => {
-   
-    if(stepHeight3d == 3)
-    {
-        stepHeight3d=1;
-        resetColor();
-    }else
-    {
-        stepHeight3d++;
-    }
-    
-    document.getElementById('idHeight').innerHTML = stepHeight3d;
-});
-function resetColor()
-{
-    polygons.forEach(p=> p.color = whiteColor);
-  //  circles.forEach(p=> p.color = "#ffffff" + "95");
-  //  rects.forEach(p=> p.color = "#ffffff" + "95");
-    
-    drawCanvas();
-}
-document.getElementById('idresetcolor').addEventListener('click', () => {
-
-    resetColor();
-});
-document.getElementById('id3d').addEventListener('click', () => {
-    if (status3d == 'true')
-	{
-      status3d = 'false';
-      document.getElementById('id3d').innerHTML = "3D Off";
-      document.getElementById('id3d').style.backgroundColor ="#008cba";
-       	drawCanvas();
-	}
-	else if (status3d == 'false')
-	{
-      status3d = 'true';
-      document.getElementById('id3d').innerHTML = "3D On";
-      document.getElementById('id3d').style.backgroundColor ="#7f0059";
-	}
-
-});
-
-document.getElementById('idtextoff').addEventListener('click', () => {
-    if (drawtext == 'true')
-	{
-      drawtext = 'false';
-      document.getElementById('idtextoff').innerHTML = "Draw Text Off";
-	}
-	else if (drawtext == 'false')
-	{
-      drawtext = 'true';
-      document.getElementById('idtextoff').innerHTML = "Draw Text On";
-	}
-    if(status3d == 'false')
-    {
-        drawCanvas();
-    }
-    else if (status3d == 'true')
-    {
-        DrawMidragColor();
-    }
- 	//drawCanvas()
-});
-document.getElementById('idcurve').addEventListener('click', () => {
-    if (drawcurve == 'true')
-{
-    drawcurve = 'false';
-    document.getElementById('idcurve').innerHTML = "Draw Curve Off";
-    
-   // document.getElementById('idcurve').style.backgroundColor = "#008cba";
-}
-else if (drawcurve == 'false')
-{
-    drawcurve = 'true';
-    document.getElementById('idcurve').innerHTML = "Draw Curve On";
-  //  document.getElementById('idcurve').style.backgroundColor = "#7f0059";
-}
-
-});
-let polyActive = 'false';
-let rectActive = 'false';
-let circleActive = 'false';
-
-document.getElementById('poly').addEventListener('click',function (){ 
-status = 'poly';
-
-if (polyActive == 'false')
-{ 
-	polyActive = 'true';
-  //  document.getElementById('rect').style.backgroundColor = "yellow";
-  //  document.getElementById('circle').style.backgroundColor = "yellow";
-  //  rectActive = 'false';
-   // circleActive = 'false';
-}
-else if (polyActive == 'true')
-{
-	polyActive = 'false';
-}
-
-
-});
-/*document.getElementById('rect').addEventListener('click',function () { 
-status = 'rect';
-if (rectActive == 'false')
-{ 
-	rectActive = 'true';
-    document.getElementById('poly').style.backgroundColor = "yellow";
-    document.getElementById('circle').style.backgroundColor = "yellow";
-    polyActive = 'false';
-    circleActive = 'false';
-}
-else if (rectActive == 'true')
-{
-	rectActive = 'false';
-}
-});
-
-document.getElementById('circle').addEventListener('click',function () { 
-status = 'circle';
-if (circleActive == 'false')
-{ 
-	circleActive = 'true';
-    document.getElementById('poly').style.backgroundColor = "yellow";
-    document.getElementById('rect').style.backgroundColor = "yellow";
-    polyActive = 'false';
-    rectActive = 'false';
-}
-else if (circleActive == 'true')
-{
-	circleActive = 'false';
-}
-});*/
-
-
-
-function inChangeBtnColor(x , id)
-{
-    if (drawcurve == 'false' && id=="idcurve")
-    {
-        x.style.backgroundColor = "#7f0059";
-    }
-    if (drawtext == 'false' && id=="idtextoff")
-    {
-        x.style.backgroundColor = "#7f0059";
-    }
-    if (statusUpdateData == 'false' && id=="idupdatedata")
-    {
-        x.style.backgroundColor = "#7f0059";
-    }
-    if (CsvMidrag == 'false' && id=="idCsvMidrag")
-    {
-        x.style.backgroundColor = "#7f0059";
-    }
-    if (ColorStatus == 'false' && id=="idcolorstatus")
-    {
-        x.style.backgroundColor = "#7f0059";
-    }
-   if (polyActive == 'false' && id=="poly")
-    {
-        x.style.backgroundColor = "#7f0059";
-      
-    }
-    if (rectActive == 'false' && id=="rect")
-    {
-        x.style.backgroundColor = "#7f0059";
-     
-    }
-    if (circleActive == 'false' && id=="circle")
-    {
-        x.style.backgroundColor = "#7f0059";
-      
-    }
-    if (status3d == 'false' && id=="id3d")
-    {
-        x.style.backgroundColor = "#7f0059";
-    }
-    if (updatePosText == 'false' && id=="idUpdatePosText")
-    {
-        x.style.backgroundColor = "#7f0059";
-    }
-}
-function outChangeBtnColor(x , id)
-{
-    if (drawcurve == 'false' && id=="idcurve")
-    {
-        x.style.backgroundColor = "#008cba";
-       
-    }
-    if (drawtext == 'false'&& id=="idtextoff")
-    {
-        x.style.backgroundColor = "#008cba";
-    }
-    if (statusUpdateData == 'false' && id=="idupdatedata")
-    {
-        x.style.backgroundColor = "#008cba";
-    }
-    if (CsvMidrag == 'false' && id=="idCsvMidrag")
-    {
-        x.style.backgroundColor = "#008cba";
-    }
-    if (ColorStatus == 'false' && id=="idcolorstatus")
-    {
-        x.style.backgroundColor = "#008cba";
-    }
-  	if (polyActive == 'false' && id=="poly")
-    {
-        x.style.backgroundColor = "yellow";
-      
-    }
-    if (rectActive == 'false' && id=="rect")
-    {
-        x.style.backgroundColor = "yellow";
-     
-    }
-    if (circleActive == 'false' && id=="circle")
-    {
-        x.style.backgroundColor = "yellow";
-      
-    }
-    if (status3d == 'false' && id=="id3d")
-    {
-        x.style.backgroundColor = "#008cba";
-    }
-    if (updatePosText == 'false' && id=="idUpdatePosText")
-    {
-        x.style.backgroundColor = "#008cba";
-    }
-    
-    
-}
-function ResizeMap()
-{
-   // polygons.forEach(p=> p.color = "fffff0" ,p.colorIndex = undefined);
-if (firstsize === 'false')
-{
-ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-canvas.width = canvas.width *0.5;
-canvas.height = canvas.height *0.5;
-ctx.scale(0.5,0.5);
-firstsize = 'true';
-} 
-else if  (firstsize === 'true')
-{
-   // ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.scale(2,2);
-    //imgWidth = image.width ;
-    //imgHeight = image.height;
-    canvas.width = canvas.width *2;
-    canvas.height = canvas.height *2;
-    firstsize = 'false';
-}
-if(status3d == 'false')
-{
-    drawCanvas();
-}
-else if (status3d == 'true')
-{
-    DrawMidragColor();
-}
-
-}
-function validatecolor()
-{
-  lstColor = document.querySelector("input[list=color-test]").value;
-  switch(lstColor)
-  {
-  case "Green":
-    Shades = greenShades;
-    break;
-  case "Blue":
-    Shades = blueShades;
-    break;
-  case "Red":
-      Shades = redShades;
-      break;
-  case "Yellow":
-      Shades = yellowShades;
-      break;
-  case "Gray":
-      Shades = grayShades;
-      break;
-  case "Mixed":
-        Shades = mixedShades;
-        break;
-  default:
-    Shades = greenShades;
-  }
-  document.getElementById('pos').innerHTML = lstColor;
-}
-function changeCsvMidrag()
-{
-    if(CsvMidrag == 'false')
-    {
-        CsvMidrag = 'true';
-        document.getElementById('idCsvMidrag').innerHTML ="Excel Midrag On";
-    }
-    else{
-        CsvMidrag = 'false'
-        TxtMikra.length = 0 ;
-        document.getElementById('idCsvMidrag').innerHTML ="Excel Midrag Off";
-    }
-}
-function AddVvlues(obj)
-{
-    if(obj.length != 0 )
-    { 
-        for(let i = 0 ; i<obj.length ; i++ )
-        {
-            if(obj[i].text != undefined)
-            {
-                AllTextValues.push(Math.floor(obj[i].text));
-            }
-        }
-    }
-}
-
-function UpdateMidragValuuesToObj(obj ,min ,max)
-{
-    for (let i=0 ; i < obj.length ; i++)
-    {
-        if (CsvMidrag == 'false')
-        {
-            if(obj[i].text)
-            {
-            num = Math.floor(obj[i].text);
-          	let index;           
-            let step = (max - min)/sizeMidrag; 
-            let MaxMinIndex = [];
-            for(let j=0 ;j <= 10;j++)
-            {
-            	let tmp = (step *( j+1))+min;
-                if(tmp >= num)
-                {
-                index = j  ;
-                console.log("index : " + index + " step " + " tmp " + tmp + " j " + j);
-                break;
-                
-                }
-            
-            }
-        //    console.log("index : " + index);
-            let color = Shades[index].hex;
-            obj[i].color = color ;
-            obj[i].index = index;
-            let midragMax = ((index +1)* step)+min ;
-            let midragMin = midragMax - step;
-            console.log("min " + min + " max " + max );
-            console.log("index : " + obj[i].index + " min " + midragMin + " max " + midragMax + " text " + obj[i].text);
-            obj[i].midragMax = Math.floor( midragMax);
-            obj[i].midragMin =Math.floor( midragMin );
-            obj[i].neighborhoods = midragMin; 
-            obj[i].rova = midragMax;
-            console.log("Ezor " + obj[i].ezor + " text " + obj[i].text + " index : " + obj[i].index + " Color : " + obj[i].color);
-
-            }
-            else{
-                obj[i].color =whiteColor;
-                obj[i].midragMax = undefined;
-                obj[i].midragMin = undefined;
-                obj[i].neighborhoods = undefined; 
-                obj[i].rova = undefined;
-            }
-        
-        } 
-        else if (CsvMidrag == 'true')
-        {
-            if(obj[i].colorIndex >= 0 && obj[i].text)
-            {
-            obj[i].color = Shades[Math.floor(obj[i].colorIndex)].hex ;
-            document.getElementById('pos').innerHTML =obj[i].color;
-          //  console.log(obj[i].color);
-            }
-            else{
-                obj[i].color =whiteColor;
-                obj[i].midragMax = undefined;
-                obj[i].midragMin = undefined;
-                obj[i].neighborhoods = undefined; 
-                obj[i].rova = undefined;
-            }
-            
-        }
-            
-    }
-
-}
-function triple3d(clonedPolygons ,i)
-{
-    for(let j= 0 ; j< clonedPolygons[i].points.length ; j++)
-    {
-        
-    clonedPolygons[i].points[j].y -= stepHeight3d ;
-      
-    drawPolygon(clonedPolygons[i].points, clonedPolygons[i].color, clonedPolygons[i].text , clonedPolygons[i].UserPosTx,clonedPolygons[i].UserPosTy,clonedPolygons[i]);
-  
-    // drawCanvas3d();*/
-    }
-   // console.log("CsvMidrag true bad");
-}
-function poly3d(clonedPolygons)
-{
-    
-    if (CsvMidrag == 'false')
-    {
-        clonedPolygons.sort( (a,b) => {
-        if (a.index === undefined) return 1
-        if (b.index === undefined) return -1
-        return a.index - b.index});
-      /*  for(let i= 0 ; i< clonedPolygons.length;i++)
-        {
-        console.log("clonedPolygons : " +  i + " " + clonedPolygons[i].index)
-        }*/
-    }
-    else if (CsvMidrag == 'true')
-    {
-        clonedPolygons.sort( (a,b) => {
-        if (a.colorIndex === undefined) return 1
-        if (b.colorIndex === undefined) return -1
-        return a.colorIndex - b.colorIndex});
-    /*    for(let i= 0 ; i< clonedPolygons.length;i++)
-        {
-        console.log("clonedPolygons : " +  i + " " + clonedPolygons[i].colorIndex)
-        }*/
-    }        
-      
-    for(let i= 0 ; i< clonedPolygons.length;i++)
-    {
-       
-        if (CsvMidrag == 'false')
-        {
-            
-            if(clonedPolygons[i].index != undefined)
-            {
-                clonedPolygons[i].posStepTxt = ((Math.floor(clonedPolygons[i].index) + 1)*2)*stepHeight3d;
-                for(let j=0 ; j<((Math.floor(clonedPolygons[i].index) + 1)*2) ; j++)
-               // for(let j=0 ; j<10 ; j++)
-                {
-                
-                triple3d(clonedPolygons,i);
-                
-                }
-            }
-        
-        }
-        else if (CsvMidrag == 'true')
-        {
-            
-            
-            if(clonedPolygons[i].colorIndex != undefined)
-            {  
-                clonedPolygons[i].posStepTxt = ((Math.floor(clonedPolygons[i].colorIndex) + 1)*2)*stepHeight3d;
-                for(let j=0 ; j<(Math.floor(clonedPolygons[i].colorIndex) + 1)*2 ; j++)
-             // for(let j=0 ; j<10 ; j++)
-                {
-                
-                triple3d(clonedPolygons,i);
-                
-                }
-            }         
-        }
-    }
-    
-}
-function DrawMidragColor()
-{
-   
- validatecolor();
- if(lstColor == null)
-  {
-  Shades = greenShades;
-  }
-  
-  let min;
-  let max;
- 	
-    AllTextValues.length = 0 ;
-  //  AddVvlues(circles);
-  //  AddVvlues(rects);
-    AddVvlues(polygons);
-    console.log(AllTextValues);
-    min = Math.min(...AllTextValues);
-    console.log(min)
-    max = Math.max(...AllTextValues);
-    console.log(max)
-   // resetColor();
-    document.getElementById('pos').innerHTML = min + " " +max;
-  if(status3d == 'false')
-  {
-  //  UpdateMidragValuuesToObj(circles ,min ,max);
-  //  UpdateMidragValuuesToObj(rects ,min ,max);
-    UpdateMidragValuuesToObj(polygons ,min ,max);
-	drawCanvas();
-  }
-  else if (status3d == 'true')
-  {
-  UpdateMidragValuuesToObj(polygons ,min ,max);
-  clonedPolygons = structuredClone(polygons);
-  drawCanvas();
-  poly3d(clonedPolygons);
-  DrawTable();
-  }
- 
-}
-
-function FindMinValue(objshape)
-{
-    
-    let min = Math.floor(objshape[0].text) ;
-    for (let i=0 ; i < objshape.length ; i++)
-    {
-        if(Math.floor(objshape[i].text )<= min){min = Math.floor(objshape[i].text);}
-    }
-    
-    console.log(min);
-    return min;
-}
-function FindMaxValue(objshape)
-{
-    
-    let max = Math.floor(objshape[0].text) ;
-    for (let i=0 ; i < objshape.length ; i++)
-    {
-        if(Math.floor(objshape[i].text) >= max){max = Math.floor(objshape[i].text);}
-    }
-    
-    console.log(max)
-    return max;
-}
-/*function getShadeByValue(value, min, max) {
-    let index = Math.floor(((value - min) / (max - min)) * (sizeMidrag));
- //   console.log(index);
-  //  console.log(Shades[index].hex);
-    return Shades[index].hex;
-}*/
-
-
-//document.getElementById('circle').addEventListener('click', () => status = 'circle');
-//document.getElementById('poly').addEventListener('click', () => status = 'poly');
-//document.getElementById('rect').addEventListener('click', () => status = 'rect');
-document.getElementById('delshape').addEventListener('click', () => delstatus = 'true');
-
-colorPicker.addEventListener("input", () => currentColor = colorPicker.value + '80');
-
-function ChangeColorStatus()
-{
-	if(ColorStatus == 'false')
-    {
-    	ColorStatus = 'true';
-        document.getElementById('idcolorstatus').innerHTML ="Update Color On";
-        statusUpdateData = 'false';
-        document.getElementById('idupdatedata').innerHTML ="Update Data Off";
-    }
-    else if(ColorStatus == 'true')
-    {
-    	ColorStatus = 'false';
-        document.getElementById('idcolorstatus').innerHTML ="Update Color Off";
-        
-    }
-}
-function UpdateData()
-{
-
-	if(statusUpdateData == 'false')
-    {
-    	statusUpdateData = 'true';
-        document.getElementById('idupdatedata').innerHTML ="Update Data On";
-        ColorStatus = 'false';
-        document.getElementById('idcolorstatus').innerHTML ="Update Color Off";
-    }
-    else if(statusUpdateData == 'true')
-    {
-    	statusUpdateData = 'false';
-        document.getElementById('idupdatedata').innerHTML ="Update Data Off";
-    }
-}
-
-let CSV = document.getElementById('csv');
-let button = document.getElementById('btn');
-//CSV.addEventListener('click', (event) => {console.log("click.");});
-
-
-
-function UploadNextCsvFiles()
-{
-
-lstfilevalue = document.querySelector("input[list=lstCsvFiles]").value;
-let numfile;
-    for(let i=0 ; i<files.length ; i++)
-    {
-        if(files[i].name == lstfilevalue)
-        {
-        numfile=i;
-        break;
+            tr.appendChild(tdNum);
+            tr.appendChild(tdMikra);
+            valuesTableBody.appendChild(tr);
         }
 
-    }
+        // טבלת פוליגונים (ID + VALUE)
+        if (row.ID != null && row.VALUE != null && !seenIDs.has(row.ID)) {
+            seenIDs.add(row.ID);
+            const tr = document.createElement("tr");
+            tr.style.cursor = "pointer";
 
-let file;
-    if(numfile >=0 )
-    {
-        file = structuredClone(files[numfile]);
-    }
-    else
-    {
-        nextfiles++ ;
-        if(nextfiles >= files.length)
-        {
-        nextfiles=0;
-        }
-    console.log("files " + files);
-    console.log("files.length " + files.length);
-    file = structuredClone(files[nextfiles]);
+            const tdID = document.createElement("td");
+            tdID.textContent = row.ID;
+            tdID.style.backgroundColor = colorMap[row.NUM - 1] || "#000";
+            tdID.style.color = "#fff";
+            tdID.style.textAlign = "center";
 
-    }
-//let file = structuredClone(files[nextfiles]);
+            const tdValue = document.createElement("td");
+            tdValue.textContent = row.VALUE;
 
-    let reader = new FileReader();
-    document.getElementById('idfilename').innerHTML = file.name;//idTitleFile
-    document.getElementById('idTitleFile').innerHTML = file.name;
-    console.log("Selected file:", file);
+            tr.appendChild(tdID);
+            tr.appendChild(tdValue);
 
-    reader.onload = function (e)
-    {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: "array" });
-
-        // Get first sheet name
-        const sheetName = workbook.SheetNames[0];
-        document.getElementById("pos").innerHTML = "Sheet Name: " + sheetName; // Display sheet name
-
-        // Convert sheet to array list (2D array)
-        const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
-    //	document.getElementById("demo").textContent =sheet[1][0];
-    //   rows = sheet;
-        UpdateShape(polygons, sheet); // Ensure UpdateShape can handle the CSV data
-        document.getElementById('pos').innerHTML = polygons.length;
-        DrawMidragColor();
-        TxtMikra.length = 0;
-        UpdateMikra(false);
-         
-    };
-        reader.readAsArrayBuffer(file);
-        document.getElementById('lstcsv').value = '';
-};
-
-
-
-if(CSV)
-{
-    CSV.addEventListener('change', (event) => 
-    {
-        console.log("Enter file Excel");
-        if (event.target.files.length === 0) {
-            console.warn("No file selected.");
-            return;
-        }
-
-        files =structuredClone(event.target.files);
-    //   console.log("files " + files);
-    //    console.log("files  " +files.length);
-        
-        let file =structuredClone(files[0]); 
-        let reader = new FileReader();
-        
-        document.getElementById('idfilename').innerHTML = file.name;
-	    document.getElementById('idTitleFile').innerHTML = file.name;
-        console.log("Selected file:", file);
-                
-        reader.onload = function (e)
-        {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: "array" });
-
-            // Get first sheet name
-            const sheetName = workbook.SheetNames[0];
-            document.getElementById("pos").innerHTML = "Sheet Name: " + sheetName; // Display sheet name
-
-            // Convert sheet to array list (2D array)
-            const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
-        //	document.getElementById("demo").textContent =sheet[1][0];
-        //   rows = sheet;
-            UpdateShape(polygons, sheet); // Ensure UpdateShape can handle the CSV data
-            document.getElementById('pos').innerHTML = polygons.length;
-            DrawMidragColor();
-            TxtMikra.length = 0;
-            UpdateMikra(false);
-            
-        };
-        reader.readAsArrayBuffer(file);
-        
-
-    CSV.value = ''; 
-    console.log(files);
-    
-    lstCsvFiles.replaceChildren()
-    if(files)
-    {
-        for(let i=0 ; i< files.length;i++)
-        {            
-        let option = document.createElement('option');
-        option.value = files[i].name;
-        list.appendChild(option);
-        }    
-    }
-});          
-}  
-
-function UpdateShape(shape,rows)
-{
-	for (let i = 0; i < shape.length; i++)
-    {
-    shape[i].text = undefined;
-    shape[i].index = undefined;
-    shape[i].colorIndex = undefined;
-    shape[i].CsvMikra = undefined;
-    shape[i].mikrayadani = undefined;
-    shape[i].rova = undefined;
-    shape[i].neighborhoods = undefined;
-    }
-    for (let i = 0; i < shape.length; i++)
-    {
-       // document.getElementById('pos').innerHTML ="good";
-      //  shape[i].text = rows[i][1];
-        for(let j=0;j<rows.length;j++)
-        {
-            //if(rows[j][0].trim() == shape[i].ezor.trim())
-            if(rows[j][0] == shape[i].ezor)
-            {
-            document.getElementById('pos').innerHTML ="good";
-            console.table(rows[j][0] + " " + rows[j][1] + " " + rows[j][2] + " " +rows[j][3] );
-            shape[i].text = rows[j][1];
-            shape[i].colorIndex = rows[j][2];
-            shape[i].CsvMikra = rows[j][3];
-            shape[i].mikrayadani = rows[0][1];
-           // polygons[i].colorIndex= index;
-            }
-        }
-    }
-    console.log(shape);
-  //  drawCanvas();
-
-}
-// Save All Shapes
-document.getElementById('save-shapes').addEventListener('click', function() {
-    const allShapes = { polygons, circles, rects };
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allShapes));
-    const link = document.createElement('a');
-    link.href = dataStr;
-    let fileName = prompt("Enter File Name: ","shapes");
-    if(fileName){
-    link.download = fileName + '.json';
-    }
-    else {
-    link.download = 'shapes.json';
-    }
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-});
-
-// Load All Shapes
-document.getElementById('load-shapes').addEventListener('change', function(event) {
-    console.log(polygons);
-    // if (polygons.length >0) { polygons.length = 0} 
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const shapes = JSON.parse(e.target.result);
-            polygons = shapes.polygons || [];
-            circles = shapes.circles || [];
-            rects = shapes.rects || [];
-            console.log(shapes);
-           // UpdateMikraByCsv();
-            drawCanvas(1);// 1 not draw tabla
-        };
-        reader.readAsText(file);
-    }
-    console.log(polygons);
-    console.log(polygons.length);
-});
-
-// Load Image
-document.getElementById('upload-image').addEventListener('change', function(event) {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            image = new Image();
-            image.src = e.target.result;
-            image.onload = function() {
-                // Ensure canvas resizes to the image size
-                canvas.width = image.width;
-                canvas.height = image.height;
-                imgWidth = image.width ;
-                imgHeight = image.height;
-                drawCanvas(1);
-            };
-        };
-        reader.readAsDataURL(file);
-    }
-});
-
-// Save Canvas as Image
-document.getElementById('save-img').addEventListener('click', function() {
-    const link = document.createElement('a');
-    let fileName = prompt("Enter File Name: ","edited_image");
-    if(fileName){
-    link.download = fileName + '.png';
-    }
-    else {
-    link.download = 'edited_image.png';
-    }
-    
-    link.href = canvas.toDataURL();
-    link.click();
-});
-function drawCanvas3d() {
-    clonedPolygons.forEach(p => drawPolygon(p.points, p.color, p.text));
-
-}
-function drawCanvas(drawt) {
-   
-    // Clear the canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw the image if available
-    if (image) {
-        ctx.drawImage(image, 0, 0);
-    }
-   // console.log(polygons);
-    // Draw all polygons, rectangles, and circles
-    polygons.forEach(p => drawPolygon(p.points, p.color, p.text ,p.UserPosTx , p.UserPosTy,p));
-  //  rects.forEach(r => drawRect(r.points, r.color, r.text));
-  //  circles.forEach(c => drawArc(c.points, c.color, c.text));
-
-    // Draw the current shape being drawn
-   // console.log("currentPolygon : " + currentPolygon)
-   drawPolygon(currentPolygon, currentColor, "", true);
-   if(drawt != 1)
-   {
-    DrawTable();
-   }
-   
-}
-
-function drawPolygon(points, color, text = "",PosTx , PosTy, shape , temp = false) {
-    
-    if (points.length < 2) return;
-    ctx.beginPath();
-    ctx.moveTo(points[0].x, points[0].y);
-   // points.forEach(p => ctx.lineTo(p.x, p.y));
-   for (let i = 1; i < points.length - 1; i++)
-   {
-        let midX = (points[i].x + points[i + 1].x) / 2;
-        let midY = (points[i].y + points[i + 1].y) / 2;
-        if(points[i].drawcurve == 'true')
-        {
-        ctx.quadraticCurveTo(points[i].x, points[i].y, midX, midY);
-        }
-        else if (points[i].drawcurve == 'false')
-        {
-            ctx.lineTo(points[i].x,points[i].y);
-        } 
-   }
-   ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
-    if (!temp) ctx.closePath();
-    //console.log(shape.ezor + " color " + color);
-    ctx.strokeStyle = "DarkSlateGray";
-    ctx.stroke();
-    ctx.fillStyle = color;
-    ctx.fill();
-   if (drawtext == 'true'){
-  //  console.log(UserPosTx + " - " + UserPosTy)
-    drawTextInShape(points, text,PosTx , PosTy,shape);
-    }
-  // drawTextInShape(points, text);
-}
-
-function drawRect(points, color, text = "") {
-    if (points.length < 2) return;
-    let width = points[1].x - points[0].x;
-    let height = points[1].y - points[0].y;
-    ctx.fillStyle = color;
-    ctx.fillRect(points[0].x, points[0].y, width, height);
-    ctx.strokeStyle = "blue";
-    ctx.strokeRect(points[0].x, points[0].y, width, height);
-    
-    if (drawtext == 'true'){
-        drawTextInShape(points, text);
-    }
-}
-
-function drawArc(points, color , text = "") {
-    if (points.length < 2) return;
-    let dx = points[0].x - points[1].x;
-    let dy = points[0].y - points[1].y;
-    let radius = Math.sqrt(dx * dx + dy * dy);
-    ctx.beginPath();
-    ctx.arc(points[0].x, points[0].y, radius, 0, 2 * Math.PI);
-    ctx.strokeStyle = "blue";
-    ctx.stroke();
-    ctx.fillStyle = color;
-    ctx.fill();
-    if (drawtext == 'true'){
-        drawTextInShape(points, text , 'arc');
-    }
-   
-}
-function GetfillStyleCsvTrue(shape)
-{
- lstColor = document.querySelector("input[list=color-test]").value;
- let fillstyle;
-  switch(lstColor)
-  {
-  case "Green":
-    if( shape.colorIndex >= 6)
-        {
-        fillstyle = "white";
-        }
-        else
-        {
-        fillstyle = "black";
-        }
-    break;
-  case "Blue":
-    if( shape.colorIndex >= 4)
-        {
-        fillstyle = "white";
-        }
-        else
-        {
-        fillstyle = "black";
-        }
-    break;
-  case "Red":
-      if(shape.colorIndex >= 5)
-        {
-        fillstyle = "white";
-        }
-        else
-        {
-        fillstyle = "black";
-        }
-      break;
-  case "Yellow":
-      if( shape.colorIndex >= 6)
-        {
-        fillstyle = "white";
-        }
-        else
-        {
-        fillstyle = "black";
-        }
-      break;
-  case "Gray":
-      if( shape.colorIndex >= 4)
-        {
-        fillstyle = "white";
-        }
-        else
-        {
-        fillstyle = "black";
-        }
-      break;
-  case "Mixed":
-        if(shape.colorIndex >= 7 || shape.colorIndex == 3)
-        {
-        fillstyle = "white";
-        }
-        else
-        {
-        fillstyle = "black";
-        }
-        break;
-  default:
-    if(shape.colorIndex >= 5)
-        {
-        fillstyle = "white";
-        }
-        else
-        {
-        fillstyle = "black";
-        }
-    
-    
-  }
-  document.getElementById('pos').innerHTML = fillstyle;
-  return fillstyle;
-}
-function GetfillStyle(shape)
-{
- lstColor = document.querySelector("input[list=color-test]").value;
- let fillstyle;
-  switch(lstColor)
-  {
-  case "Green":
-    if(shape.index >=6)
-        {
-        fillstyle = "white";
-        }
-        else
-        {
-        fillstyle = "black";
-        }
-    break;
-  case "Blue":
-    if(shape.index >=4 )
-        {
-        fillstyle = "white";
-        }
-        else
-        {
-        fillstyle = "black";
-        }
-    break;
-  case "Red":
-      if(shape.index >=5 )
-        {
-        fillstyle = "white";
-        }
-        else
-        {
-        fillstyle = "black";
-        }
-      break;
-  case "Yellow":
-      if(shape.index >=6 )
-        {
-        fillstyle = "white";
-        }
-        else
-        {
-        fillstyle = "black";
-        }
-      break;
-  case "Gray":
-      if(shape.index >=4 )
-        {
-        fillstyle = "white";
-        }
-        else
-        {
-        fillstyle = "black";
-        }
-      break;
-  case "Mixed":
-        if(shape.index >=7 ||  shape.index == 3 )
-        {
-        fillstyle = "white";
-        }
-        else
-        {
-        fillstyle = "black";
-        }
-        break;
-  default:
-    if(shape.index >=5 )
-        {
-        fillstyle = "white";
-        }
-        else
-        {
-        fillstyle = "black";
-        }
-    
-    
-  }
-  document.getElementById('pos').innerHTML = fillstyle;
-  return fillstyle;
-}
-
-function drawTextInShape(points, text , PosTx , PosTy ,shape, sug) {
-    if (!text) return;
-    let sumX = 0, sumY = 0;
-    points.forEach(p => { sumX += p.x; sumY += p.y; });
-    let centerX = sumX / points.length;
-    let centerY = sumY / points.length;
-   if(shape)
-    {
-    	/*if(shape.index >=5 || shape.colorIndex >= 5)
-        {
-        ctx.fillStyle = "white";
-        }
-        else
-        {
-        ctx.fillStyle = "black";
-        }*/
-      let  tmpcolor = whiteColor;
-      if(shape.color == tmpcolor)
-      {
-      ctx.fillStyle = "black"
-      }
-      else
-      {
-        if(CsvMidrag == 'false')
-        {
-        ctx.fillStyle =   GetfillStyle(shape)
-        }
-        else if(CsvMidrag == 'true')
-        {
-        ctx.fillStyle =   GetfillStyleCsvTrue(shape)
-        }
-      }
-    }
-    else
-    {
-    ctx.fillStyle = "black";
-    }
- //   ctx.fillStyle = "black";
-    ctx.font = "16px Arial";
-    ctx.textAlign = "center";
- //   console.dir("shape : " + shape.UserPosTx)
-  if(shape.UserPosTx)
-  {
-    if (status3d == 'true' && shape.posStepTxt )
-    {
- //   console.log("shape.posStepTxt: " + shape.posStepTxt)
-    ctx.fillText(text,shape.UserPosTx, shape.UserPosTy-shape.posStepTxt);
-    }
-    else
-    {
-      ctx.fillText(text,shape.UserPosTx, shape.UserPosTy);
-    }
-    
-  }
-  else
-  {
-    ctx.fillText(text, centerX, centerY);
-  }
-  
- 
-}
-
-function isPointInsidePolygon(point, polygon) {
-    let inside = false;
-    let x = point.x, y = point.y;
-    let n = polygon.length;
-    let p1x = polygon[0].x, p1y = polygon[0].y;
-    for (let i = 1; i <= n; i++) {
-        let p2x = polygon[i % n].x, p2y = polygon[i % n].y;
-        if (y > Math.min(p1y, p2y)) {
-            if (y <= Math.max(p1y, p2y)) {
-                if (x <= Math.max(p1x, p2x)) {
-                    if (p1y != p2y) {
-                        let xinters = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x;
-                        if (p1x == p2x || x <= xinters) {
-                            inside = !inside;
-                        }
+            tr.addEventListener("click", () => {
+                drawnItems.eachLayer(layer => {
+                    if (layer.feature && layer.feature.properties.oid_ezor == row.ID) {
+                        map.fitBounds(layer.getBounds(), { maxZoom: 17 });
                     }
-                }
-            }
+                });
+            });
+
+            polygonTableBody.appendChild(tr);
         }
-        p1x = p2x;
-        p1y = p2y;
-    }
-    return inside;
+    });
 }
-function UpdateDataRects(i)
+
+
+
+function downloadPolygons() {
+    var geojson = drawnItems.toGeoJSON();
+    console.log("geojson " + geojson)
+    var blob = new Blob([JSON.stringify(geojson, null, 2)], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "polygons.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+function ColorTransperent()
 {
-  if(document.getElementById('idezor').value.length != 0 )
-  {
-    rects[i].ezor = document.getElementById('idezor').value ;
-  }
-  if(document.getElementById('idneighborhoods').value.length != 0 )
-  {
-    rects[i].neighborhoods = document.getElementById('idneighborhoods').value ;
-  }
-  if(document.getElementById('idrova').value.length != 0 )
-  {
-    rects[i].rova = document.getElementById('idrova').value ;
-  }
-
-}
-function UpdateDataShape(i,shape)
-{
-  if(document.getElementById('idezor').value.length != 0 )
-  {
-    shape[i].ezor = document.getElementById('idezor').value ;
-  }
-  if(document.getElementById('idneighborhoods').value.length != 0 )
-  {
-    shape[i].neighborhoods = document.getElementById('idneighborhoods').value ;
-  }
-  if(document.getElementById('idrova').value.length != 0 )
-  {
-    shape[i].rova = document.getElementById('idrova').value ;
-  }
-  if(document.getElementById('idtext').value.length != 0 )
-  {
-    shape[i].text = document.getElementById('idtext').value ;
-  }
-
-}
-canvas.addEventListener('click', function(event) {
-    const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    document.getElementById('pos').innerHTML ="X: " + x + " Y: " + y;
-    
-    // Handle clicks on shapes
-    let clickedShape = getClickedShape(x, y);
-    
-    
- /*   if (clickedShape && statusUpdateData == 'true')
-    {
-        if (clickedShape.type === 'rect')
-        {
-          
-           if(delstatus == 'true')
-            {
-              rects.splice(clickedShape.index, 1);
-              delstatus = 'false';
-            }
-            else
-            {
-               
-                UpdateDataShape(clickedShape.index,rects);
-            
-            }
-        }
-        else if (clickedShape.type === 'circle')
-        {
-          if(delstatus == 'true')
-          {
-              circles.splice(clickedShape.index, 1);
-              delstatus = 'false';
-
-          }
-          else
-          {
-              UpdateDataShape(clickedShape.index,circles);
-        
-          }
-        }
-        drawCanvas();
-        return;
-    }
-if (clickedShape && statusUpdateData == 'false')
-    {
-        if (clickedShape.type === 'rect')
-        {
-          
-          if(ColorStatus == 'true')
-          {
-          rects[clickedShape.index].color = currentColor;
-          }
-          else
-          {
-          document.getElementById('idezor').value = rects[clickedShape.index].ezor  ;
-          document.getElementById('idneighborhoods').value = rects[clickedShape.index].neighborhoods  ;
-          document.getElementById('idrova').value = rects[clickedShape.index].rova  ;
-          document.getElementById('idtext').value = rects[clickedShape.index].text  ;
-          }
-        }
-        else if (clickedShape.type === 'circle')
-        {
-          if(ColorStatus == 'true')
-          {
-          circles[clickedShape.index].color = currentColor;
-          }
-          else
-          {
-          document.getElementById('idezor').value = circles[clickedShape.index].ezor  ;
-          document.getElementById('idneighborhoods').value = circles[clickedShape.index].neighborhoods  ;
-          document.getElementById('idrova').value = rects[clickedShape.index].rova  ;
-          document.getElementById('idtext').value = circles[clickedShape.index].text  ;
-          }
-        }
-        drawCanvas();
-        return;
-    }*/
-   if(updatePosText === 'true')
-    {
-        let polyi = polygons.findIndex(polygon => isPointInsidePolygon({ x, y }, polygon.points));
-        polygons[polyi].UserPosTx = x;
-        polygons[polyi].UserPosTy = y;
-        console.log("canvas click" + polygons[polyi].UserPosTx + " " + polygons[polyi].UserPosTy)
-        drawCanvas();
-        return;
-    }
-   
-    selectedPolygon = polygons.find(polygon => isPointInsidePolygon({ x, y }, polygon.points));
-    if (selectedPolygon && statusUpdateData == 'true')
-    {
-    let i = polygons.findIndex(polygon => isPointInsidePolygon({ x, y }, polygon.points));
-     
-     if(delstatus == 'true')
-      {
-    
-        polygons.splice(i, 1);
-        delstatus = 'false';
-        drawCanvas();
-        return;
-      }
-      else
-      {
-        UpdateDataShape(i,polygons);
-        drawCanvas();
-        return;
-      }
-    }
-    
-    if (selectedPolygon && statusUpdateData == 'false')
-    {
-        if(ColorStatus == 'true')
-        {
-          selectedPolygon.color = currentColor;
-		if(status3d == 'false')
-		{
-		drawCanvas();
-		}
-		else if (status3d == 'true')
-		{
-		DrawMidragColor();
-		}
-        }
-        else
-        {
-            if (CsvMidrag == 'false')
-            {
-            document.getElementById('idneighborhoods').value = selectedPolygon.midragMin  ;
-            document.getElementById('idrova').value = selectedPolygon.midragMax ;
-            }
-            else
-            {
-            document.getElementById('idneighborhoods').value = selectedPolygon.CsvMikra  ;
-           /* if(selectedPolygon.index != undefined){
-                document.getElementById('idrova').value = selectedPolygon.index  ;
-            }else*/
-                if (selectedPolygon.colorIndex != undefined)
-                {
-                    document.getElementById('idrova').value = selectedPolygon.colorIndex  ;
-                }
-                else
-                {
-                    document.getElementById('idrova').value ="";
-                }
-            }
-        
-        document.getElementById('idezor').value = selectedPolygon.ezor;
-        document.getElementById('idtext').value = selectedPolygon.text;
-        //console.log(selectedPolygon.text);
-        
-        }
-   /*     if(status3d == 'false')
-        {
-            drawCanvas();
-        }
-        else if (status3d == 'true')
-        {
-            DrawMidragColor();
-        }*/
-      //  drawCanvas();
-          return;
-    }
-
-if (statusUpdateData === 'false' && ColorStatus === 'false' && polyActive == 'true')
-    {
-    // Add new shapes based on the selected status
-	AddnewShape(x,y);
-    }
+  let checkBox = document.getElementById("myCheck");
   
-});
-
-function AddnewShape(x,y)
+  if (checkBox.checked == true){
+    return 'true';
+  } else {
+     return 'false';
+  }
+}
+let polyFile ;
+function restorePolygons()
 {
-// Add new shapes based on the selected status
-/*if (status === 'circle') {
-        currentCircle.push({ x, y });
-        if (currentCircle.length === 2) {
-            circles.push({ points: [...currentCircle], color: currentColor, text: "" });
-            currentCircle = [];
-        }
+    drawnItems.layerremove;
+    drawnItems.eachLayer(layer => {layer.remove();})
+    var file =structuredClone(polyFile); 
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+        var geojson = JSON.parse(e.target.result);
+        console.log("drawnItems " + drawnItems + " " + geojson);
+        L.geoJSON(geojson, {
+            style: function (feature) {
+                if(ColorTransperent() == 'true') 
+                {
+                return { color: feature.properties.color, fillColor: feature.properties.color, fillOpacity: 0.3 };
+                }else{
+                return { color: "#FF0000", fillColor: "#00000000" };
+                }
+                
+                //return { color: feature.properties.color, fillColor: feature.properties.color, fillOpacity: 0.5 };
+                //   return { color: "#FF0000", fillColor: "#00000000" };
+                
+            },
+            onEachFeature: function (feature, layer) {
+                drawnItems.addLayer(layer);
+            }
+            
+        }).addTo(drawnItems);
+    };
+    
+    reader.readAsText(file);
+}
+function loadPolygons(event) {
+    
+    var file = event.target.files[0];
+    polyFile =structuredClone(file);// file;
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+        var geojson = JSON.parse(e.target.result);
+        console.log("drawnItems " + drawnItems + " " + geojson);
+        L.geoJSON(geojson, {
+            style: function (feature) {
+                if(ColorTransperent() == 'true') 
+                {
+                return { color: feature.properties.color, fillColor: feature.properties.color, fillOpacity: 0.3 };
+                }else{
+                return { color: "#FF0000", fillColor: "#00000000" };
+                }
+                
+                //return { color: feature.properties.color, fillColor: feature.properties.color, fillOpacity: 0.5 };
+                //   return { color: "#FF0000", fillColor: "#00000000" };
+                
+            },
+            onEachFeature: function (feature, layer) {
+                drawnItems.addLayer(layer);
+            }
+            
+        }).addTo(drawnItems);
+    };
+    
+    reader.readAsText(file);
+}
+//drawnItems.eachLayer(layer => { layer.bindPopup( 'layer.value' ); });
+//.bindPopup(popupContent).openPopup();
+//var file = document.getElementById("excelInput").files[0];
+let files = [] ;
+let fileCounter = 0;
+function loadNextExcel() {
+    if (!polyFile || files.length === 0) {
+        alert("חסר קובץ JSON או קובץ Excel");
+        return;
     }
 
-    if (status === 'rect') {
-        currentRect.push({ x, y });
-        if (currentRect.length === 2) {
-            rects.push({ points: [...currentRect], color: currentColor, text: "" });
-            currentRect = [];
-        }
-    }*/
-
-    if (status === 'poly') {
-        currentPolygon.push({ x, y ,drawcurve});
+    if (fileCounter >= files.length) {
+        fileCounter = 0;
     }
-drawCanvas(1);
+
+    clearMapLayers(); // מחיקת כל השכבות הקיימות
+
+    // שלב 1: טען את הפוליגונים מחדש מה-JSON
+    var readerJson = new FileReader();
+    readerJson.onload = function (e) {
+        var geojson = JSON.parse(e.target.result);
+
+        // שלב 2: טען את קובץ האקסל הנוכחי לפי הקאונטר
+        var excelFile = structuredClone(files[fileCounter]);
+        var readerExcel = new FileReader();
+        readerExcel.onload = function (ev) {
+            var data = new Uint8Array(ev.target.result);
+            var workbook = XLSX.read(data, { type: 'array' });
+            var sheet = workbook.Sheets[workbook.SheetNames[0]];
+            var excelData = XLSX.utils.sheet_to_json(sheet);
+            updateValuesTable(structuredClone(excelData));
+            // שלב 3: המרה של Excel לפי ID לצבע
+            var colorMapById = {};
+            excelData.forEach(row => {
+                if (row.ID != null) {
+                    colorMapById[row.ID] = {
+                        color: colorMap[row.NUM - 1] || "#000000",
+                        value: row.VALUE,
+                        mikra: row.MIKRA
+                    };
+                }
+            });
+            
+
+            // שלב 4: הוספת שכבות למפה עם צביעה
+            L.geoJSON(geojson, {
+                style: function (feature) {
+                    var id = feature.properties.oid_ezor;
+                    if (colorMapById[id]) {
+                        return {
+                            color: colorMapById[id].color,
+                            fillColor: colorMapById[id].color,
+                            fillOpacity: 0.5,
+                            mikra:colorMapById[id].mikra
+                        };
+                    } else {
+                        return {
+                            color: "#FF0000",
+                            fillColor: "#00000000",
+                            fillOpacity: 0.1
+                        };
+                    }
+                },
+                onEachFeature: function (feature, layer) {
+                    var id = feature.properties.oid_ezor;
+                    if (colorMapById[id]) {
+                        feature.properties.color = colorMapById[id].color;
+                        feature.properties.value = colorMapById[id].value;
+                        feature.properties.mikra = colorMapById[id].mikra;
+                       // feature.properties.ms_ezor = colorMapById[id].value;
+                      //  layer.value = colorMapById[id].color;
+                        
+                      //  layer.value = colorMapById[id].value;
+                    }
+                    drawnItems.addLayer(layer);
+                }
+            });
+        };
+        readerExcel.readAsArrayBuffer(excelFile);
+        fileCounter++;
+    };
+
+    readerJson.readAsText(structuredClone(polyFile));
+    
 }
 
+function clearMapLayers() {
+    drawnItems.clearLayers();
+}
 
-
-canvas.addEventListener('contextmenu', function(event) {
-    event.preventDefault();
-    if (currentPolygon.length > 2) {
-        polygons.push({ points: [...currentPolygon], color: currentColor, text: "" });
-        currentPolygon = [];
-        drawCanvas(1);
+function loadExcel() {
+    
+    files = document.getElementById("excelInput").files;
+    var file =structuredClone(files[0]) ;
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+        var data = new Uint8Array(e.target.result);
+        var workbook = XLSX.read(data, { type: 'array' });
+        var sheet = workbook.Sheets[workbook.SheetNames[0]];
+        var json = XLSX.utils.sheet_to_json(sheet);
+        updateValuesTable(structuredClone(json));
+        json.forEach(row => {
+            drawnItems.eachLayer(layer => {
+                if (layer.feature && layer.feature.properties.oid_ezor == row.ID) {
+                    var color = colorMap[row.NUM - 1] || "#000000";
+                    layer.value = row.VALUE;
+                    layer.feature.properties.value = row.VALUE;
+                    layer.feature.properties.mikra = row.MIKRA;
+                    layer.feature.properties.color = color;
+                    layer.feature.properties.fillOpacity = 0.5;
+                    layer.setStyle({ color: color, fillColor: color, fillOpacity: 0.5 });
+                }
+            });
+        });
+    };
+    reader.readAsArrayBuffer(file);
+}
+async function fetchBuildingsData(polygon) {
+    var coordinates = polygon.getLatLngs()[0].map(coord => `${coord.lat} ${coord.lng}`).join(" ");
+    var query = `
+        [out:json];
+        (
+            way["building"](poly:"${coordinates}");
+            node["addr:housenumber"](poly:"${coordinates}");
+        );
+        out body;`;
+    var url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+    try {
+        var response = await axios.get(url);
+        return response.data.elements;
+    } catch (error) {
+        console.error("שגיאה בטעינת נתונים מ-Overpass API", error);
+        return [];
     }
+}
+
+async function downloadBuildingsData() {
+    var data = [];
+    for (let layer of drawnItems.getLayers()) {
+        var buildings = await fetchBuildingsData(layer);
+        buildings.forEach(building => {
+            if (building.tags) {
+                data.push({
+ID: layer.feature.properties.id,
+"ID בניין": building.id || "לא ידוע",
+"רחוב": building.tags["addr:street"] || "לא ידוע",
+"מספר": building.tags["addr:housenumber"] || "לא ידוע",
+"קו רוחב": building.lat || "לא ידוע",
+"קו אורך": building.lon || "לא ידוע"
 });
 
-function getClickedShape(x, y) {
-    for (let i = rects.length - 1; i >= 0; i--) {
-        let r = rects[i];
-        if (x >= r.points[0].x && x <= r.points[1].x && y >= r.points[0].y && y <= r.points[1].y) {
-            return { type: 'rect', index: i };
+                    }
+                });
+            }
+            if (data.length === 0) {
+                alert("לא נמצאו נתוני בניינים בתוך הפוליגונים");
+                return;
+            }
+            var ws = XLSX.utils.json_to_sheet(data);
+            var wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Buildings");
+            XLSX.writeFile(wb, "buildings_data.xlsx");
         }
-    }
-    for (let i = circles.length - 1; i >= 0; i--) {
-        let c = circles[i];
-        let dx = x - c.points[0].x;
-        let dy = y - c.points[0].y;
-        let radius = Math.sqrt(dx * dx + dy * dy);
-        if (radius <= Math.sqrt((c.points[0].x - c.points[1].x) ** 2 + (c.points[0].y - c.points[1].y) ** 2)) {
-            return { type: 'circle', index: i };
+function downloadPolygonsToExcel() {
+    var data = [];
+    drawnItems.eachLayer(layer => {
+        if (layer.feature) {
+            var latlngs = layer.getLatLngs()[0].map(coord => `${coord.lat}, ${coord.lng}`).join(" | ");
+            data.push({
+                ID: layer.feature.properties.oid_ezor,
+                צבע: layer.value,
+                ערך: layer.feature.properties.ms_ezor,
+                קואורדינטות: latlngs
+            });
         }
+    });
+    if (data.length === 0) {
+        alert("אין פוליגונים להורדה");
+        return;
     }
-    return null;
+    var ws = XLSX.utils.json_to_sheet(data);
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Polygons");
+    XLSX.writeFile(wb, "polygons.xlsx");
 }
+
+L.control.BigImage({position: 'topright'}).addTo(map);
+
     </script>
 </body>
 </html>
+
