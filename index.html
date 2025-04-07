@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="he">
 <head>
@@ -34,11 +35,20 @@
     <label for="myCheck">Color:</label> 
 	<input type="checkbox" id="myCheck" onclick="myFunction()">
     <input type="file" id="excelInput" accept=".xlsx" onchange="loadExcel()" multiple>
+    
+    <div style="display: flex; gap: 10px; margin: 3px; ">
+    <button onclick="MoveToTelAviv()">📊 זום תל אביב</button>
+    <button onclick="MoveToNorthTelAviv()">📊  צפון תל אביב </button>    
+    <button onclick="MoveToCenterTelAviv()">📊 מרכז תל אביב</button>
+    <button onclick="MoveToSouthTelAviv()">📊 דרום תל אביב</button>
+    	<div id="lat"></div>
+        <div id="lon"> </div>
+    </div>
     <div id="mainContainer" style="display: flex; flex-direction: row; align-items: flex-start;">
     <div id="mainContainer" style="display: flex; flex-direction: row; align-items: flex-start;">
         <div id="map" style="height: 690px; width: 800px; margin-left: 20px;"></div>
     
-        <div style="display: flex; gap: 40px; margin: 20px;">
+        <div style="display: flex; gap: 40px; margin: 20px; ">
             <!-- טבלת ערכים -->
             <div>
                 <h1 style="color:blue;text-align:center;">מקרא</h1>
@@ -81,7 +91,62 @@
         
         var colorMap = ["#FF0000", "#FF7F00", "#FFFF00", "#7FFF00", "#00FF00", "#00FF7F", "#00FFFF", "#007FFF", "#0000FF", "#7F00FF"];
         var polygonCounter = 0;
+//map.setView([32.043005, 34.766665], 15);
+//
+//map.flyTo({lng: 34.7818, lat: 32.0853},14);
+function MoveToNorthTelAviv()
+{
+map.flyTo({lng: 34.81344223022462, lat: 32.112458794127086},14);
+}
+function MoveToTelAviv()
+{
+//map.flyTo({lng: 34.7818, lat: 32.0853},15);
+map.flyTo({lng: 34.7818, lat: 32.0853},13);
+/*let bounds = null;
 
+drawnItems.eachLayer(layer =>
+{
+               
+
+    const layerBounds = layer.getBounds();
+    console.log("layerBounds " + layerBounds)
+    if (!bounds) {
+        bounds = layerBounds;
+    } else {
+        bounds.extend(layerBounds);
+    }
+
+});
+
+    if (bounds) {
+        map.fitBounds(bounds, { maxZoom: 25 });
+        
+    }*/
+}
+function MoveToCenterTelAviv()
+{
+//map.flyTo({lng: 34.7818, lat: 32.0853},15);
+map.flyTo({lng: 34.781770706176765, lat: 32.08199277428714},14);
+}
+
+
+function MoveToSouthTelAviv()
+{
+//map.flyTo({lng: 34.766665, lat: 32.043005},14);
+map.flyTo({lng: 34.77893829345704, lat: 32.059591226352595},14);
+
+}
+var lat, lng, marker;
+map.on("click", function (e) {
+  //if (marker) map.removeLayer(marker);
+  lat = e.latlng.lat;
+  lng = e.latlng.lng;
+  console.log(lat);
+  console.log(lng);
+  //marker = L.marker([lat, lng]).addTo(map);
+  document.getElementById("lat").textContent = lat;
+  document.getElementById("lon").textContent = lng;
+});
         map.on('draw:created', function (event) {
             var layer = event.layer;
             var color = document.getElementById("colorPicker").value;
@@ -111,7 +176,7 @@
         if (row.NUM != null && row.MIKRA != null && !seenNums.has(row.NUM)) {
             seenNums.add(row.NUM);
             const tr = document.createElement("tr");
-
+            tr.style.cursor = "pointer";
             const tdNum = document.createElement("td");
             tdNum.textContent = row.NUM;
             tdNum.style.backgroundColor = colorMap[row.NUM - 1] || "#000";
@@ -296,6 +361,7 @@ function loadNextExcel() {
                     if (colorMapById[id]) {
                         return {
                             color: colorMapById[id].color,
+                          //  color: "#FF0000",
                             fillColor: colorMapById[id].color,
                             fillOpacity: 0.5,
                             mikra:colorMapById[id].mikra
@@ -328,6 +394,7 @@ function loadNextExcel() {
     };
 
     readerJson.readAsText(structuredClone(polyFile));
+    map.flyTo({lng: 34.7818, lat: 32.0853},12.5);
     
 }
 
@@ -434,7 +501,46 @@ function downloadPolygonsToExcel() {
 
 L.control.BigImage({position: 'topright'}).addTo(map);
 
+// האזנה לטבלת המקרא - לחיצה על תא בצבע תעשה זום לכל הפוליגונים בצבע הזה
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelector("#valuesTable").addEventListener("click", function (e) {
+        if (e.target.tagName === "TD" && e.target.cellIndex === 0) {
+            const color = rgbToHex(e.target.style.backgroundColor);
+            let bounds = null;
+
+            drawnItems.eachLayer(layer => {
+                const layerColor = layer.feature?.properties?.color?.toLowerCase();
+                if (layerColor === color.toLowerCase()) {
+                    const layerBounds = layer.getBounds();
+                    if (!bounds) {
+                        bounds = layerBounds;
+                    } else {
+                        bounds.extend(layerBounds);
+                    }
+                }
+            });
+
+            if (bounds) {
+                map.fitBounds(bounds, { maxZoom: 17 });
+            }
+        }
+    });
+
+    function rgbToHex(rgb) {
+        if (!rgb.startsWith("rgb")) return rgb; // already in hex
+        const result = rgb.match(/\d+/g);
+        return (
+            "#" +
+            result
+                .map(x => {
+                    const hex = parseInt(x).toString(16);
+                    return hex.length === 1 ? "0" + hex : hex;
+                })
+                .join("")
+        );
+    }
+});
+
     </script>
 </body>
 </html>
-
