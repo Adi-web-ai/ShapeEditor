@@ -159,6 +159,7 @@ map.on("click", function (e) {
             layer.feature.properties.color = color;
             layer.feature.properties.id = polygonID;
             layer.feature.properties.value = value;
+	layer.feature.properties.oid_ezor = polygonID;
 
             drawnItems.addLayer(layer);
         });
