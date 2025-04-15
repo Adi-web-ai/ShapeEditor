@@ -19,34 +19,177 @@
     <link rel="stylesheet" href="Leaflet.BigImage.min.css">
     <script src="Leaflet.BigImage.min.js"></script>
     <style>
-        #map { height: 690px; width:800px;}
+    body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    direction: ltr; /* כיוון מימין לשמאל */
+  }
+
+  .container {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* שני עמודים שווים */
+    height: 100vh; /* גובה המסך */
+  }
+
+  .map-container {
+    grid-column: 1 / 2; /* תופס את העמודה הראשונה */
+    border-right: 1px solid #ccc;
+  }
+
+  #map {
+    width: 100%;
+    height: 100%;
+  }
+
+  .controls-container {
+    grid-column: 2 / 3; /* תופס את העמודה השנייה */
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .controls-row {
+    display: flex;
+   /* justify-content: space-around; /* מפזר את הפקדים בשורה */
+  /* gap:20px;*/
+    margin-bottom: 10px;
+  }
+
+  .control-button {
+    padding: 10px 30px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color:  rgb(206, 13, 126);
+    color:white;
+    margin-right: 5px;
+    
+  }
+.lbl{
+    margin-right: 15px;
+    margin-left: 15px;
+}
+  .tables-container {
+    grid-column: 2 / 3; /* תופס את העמודה השנייה */
+    display: flex;
+    justify-content: space-around; /* ממקם את הטבלאות זו לצד זו */
+    padding: 10px;
+  }
+
+  .table {
+    border: 1px solid #ccc;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+
+  .table th, .table td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: center;
+  }
+  .file-upload {
+    position: relative; /* כדי לאפשר מיקום אבסולוטי של ה-input */
+    overflow: hidden; /* כדי להסתיר את ה-input החורג */
+    display: inline-block; /* או block בהתאם לצורך */
+  }
+  
+  #file-input {
+    position: absolute;
+    font-size: 100px; /* גודל גדול כדי לכסות את הכפתור */
+    opacity: 0; /* להפוך לשקוף */
+    right: 0;
+    top: 0;
+    cursor: pointer;
+  }
+  #excelInput {
+    position: absolute;
+    font-size: 100px; /* גודל גדול כדי לכסות את הכפתור */
+    opacity: 0; /* להפוך לשקוף */
+    right: 0;
+    top: 0;
+    cursor: pointer;
+  }
+  
+  .custom-button {
+    display: inline-block;
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: none;
+  }
+  
+  .custom-button:hover {
+    background-color: #0056b3;
+  }
+  
+  #file-name {
+    margin-left: 10px;
+    font-style: italic;
+    color: #555;
+  }
     </style>
 </head>
 <body>
-    <label for="colorPicker">בחר צבע:</label>
+    <div class="container">
+        <div class="map-container">
+          <div id="map">
+            
+          </div>
+        </div>
+<div class="controls-container">
+    <div class="controls-row" >
+    <label class="lbl" for="colorPicker">בחר צבע:</label>
     <input type="color" id="colorPicker" value="#ff0000">
-    <label for="valueInput">הזן ערך:</label>
+    <label class="lbl"for="valueInput">הזן ערך:</label>
     <input type="text" id="valueInput" placeholder="הכנס ערך">
-    <button onclick="downloadPolygons()">📥 שמירת פוליגונים</button>
-    <button onclick="downloadBuildingsData()">📥 הורדת נתוני בניינים</button>
-    <button onclick="downloadPolygonsToExcel()">📊 הורדת פוליגונים לאקסל</button>
-    <button onclick="loadNextExcel()">📊 Next Excel</button>
-    <input type="file" id="fileInput" accept=".*json" onchange="loadPolygons(event)">
+</div>
+<div class="controls-row">
+    <button class="control-button" onclick="downloadPolygons()">שמירת פוליגונים</button>
+    <button class="control-button" onclick="downloadBuildingsData()">הורדת נתוני בניינים</button>
+    <button class="control-button" onclick="downloadPolygonsToExcel()">הורדת פוליגונים לאקסל</button>
+    <button class="control-button"> <a href="main.html">Old Map</a></button>
+</div>
+<div class="controls-row">
+    <button class="control-button" onclick="loadNextExcel()">Next Excel</button>
+    <div class="file-upload">
+    
+        <input type="file" id="file-input" accept=".*json" onchange="loadPolygons(event)">
+        <label for="file-input" class="custom-button" >בחר קובץ</label>
+        <span id="file-name"></span>
+    
+      </div>
+    
     <label for="myCheck">Color:</label> 
 	<input type="checkbox" id="myCheck" onclick="myFunction()">
-    <input type="file" id="excelInput" accept=".xlsx" onchange="loadExcel()" multiple>
     
-    <div style="display: flex; gap: 10px; margin: 3px; ">
-    <button onclick="MoveToTelAviv()">📊 זום תל אביב</button>
-    <button onclick="MoveToNorthTelAviv()">📊  צפון תל אביב </button>    
-    <button onclick="MoveToCenterTelAviv()">📊 מרכז תל אביב</button>
-    <button onclick="MoveToSouthTelAviv()">📊 דרום תל אביב</button>
+    <div class="file-upload">
+    
+        <input type="file" id="excelInput" accept=".xlsx" onchange="loadExcel()" multiple>
+        <label for="excelInput" class="custom-button" >בחר קובץ</label>
+        <span id="file-name"></span>
+    
+      </div>
+    
+</div>
+<div class="controls-row">
+    <button class="control-button" onclick="MoveToTelAviv()">זום תל אביב</button>
+    <button class="control-button" onclick="MoveToNorthTelAviv()">צפון תל אביב </button>    
+    <button class="control-button" onclick="MoveToCenterTelAviv()">מרכז תל אביב</button>
+    <button class="control-button" onclick="MoveToSouthTelAviv()">דרום תל אביב</button>
+    <button class="control-button" id="saveMapBtn">שמור מפה עם מקרא</button>
+</div>
+<div class="controls-row" style = "gap:20px">
     	<div id="lat"></div>
         <div id="lon"> </div>
-    </div>
+    
+    
+</div>  
+    
     <div id="mainContainer" style="display: flex; flex-direction: row; align-items: flex-start;">
-    <div id="mainContainer" style="display: flex; flex-direction: row; align-items: flex-start;">
-        <div id="map" style="height: 690px; width: 800px; margin-left: 20px;"></div>
+       
     
         <div style="display: flex; gap: 40px; margin: 20px; ">
             <!-- טבלת ערכים -->
@@ -79,7 +222,11 @@
         
     
     <script>
-        var map = L.map('map').setView([32.0853, 34.7818], 13);
+       // var map = L.map('map').setView([32.0853, 34.7818], 13);
+        var map = L.map('map', {
+  preferCanvas: true // 🖌️ מכריח ציור על Canvas
+}).setView([32.0853, 34.7818], 13);
+
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
         var drawnItems = new L.FeatureGroup();
         map.addLayer(drawnItems);
@@ -191,6 +338,34 @@ map.on("click", function (e) {
             tr.appendChild(tdNum);
             tr.appendChild(tdMikra);
             valuesTableBody.appendChild(tr);
+
+            // עדכון מקרא על המפה
+const legendContent = document.getElementById("mapLegendContent");
+legendContent.innerHTML = ""; // איפוס קודם
+
+seenNums.forEach((num, index) => {
+    const row = data.find(d => d.NUM === num);
+    const color = colorMap[row.NUM - 1] || "#000";
+    const item = document.createElement("div");
+    item.style.display = "flex";
+    item.style.alignItems = "center";
+    item.style.marginBottom = "4px";
+    
+    const colorBox = document.createElement("div");
+    colorBox.style.width = "20px";
+    colorBox.style.height = "20px";
+    colorBox.style.marginLeft = "5px";
+    colorBox.style.backgroundColor = color;
+    colorBox.style.border = "1px solid #000";
+
+    const text = document.createElement("span");
+    text.textContent = row.MIKRA;
+
+    item.appendChild(colorBox);
+    item.appendChild(text);
+    legendContent.appendChild(item);
+});
+
         }
 
         // טבלת פוליגונים (ID + VALUE)
@@ -248,38 +423,7 @@ function ColorTransperent()
   }
 }
 let polyFile ;
-function restorePolygons()
-{
-    drawnItems.layerremove;
-    drawnItems.eachLayer(layer => {layer.remove();})
-    var file =structuredClone(polyFile); 
-    if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function (e) {
-        var geojson = JSON.parse(e.target.result);
-        console.log("drawnItems " + drawnItems + " " + geojson);
-        L.geoJSON(geojson, {
-            style: function (feature) {
-                if(ColorTransperent() == 'true') 
-                {
-                return { color: feature.properties.color, fillColor: feature.properties.color, fillOpacity: 0.3 };
-                }else{
-                return { color: "#FF0000", fillColor: "#00000000" };
-                }
-                
-                //return { color: feature.properties.color, fillColor: feature.properties.color, fillOpacity: 0.5 };
-                //   return { color: "#FF0000", fillColor: "#00000000" };
-                
-            },
-            onEachFeature: function (feature, layer) {
-                drawnItems.addLayer(layer);
-            }
-            
-        }).addTo(drawnItems);
-    };
-    
-    reader.readAsText(file);
-}
+
 function loadPolygons(event) {
     
     var file = event.target.files[0];
@@ -384,7 +528,7 @@ function loadNextExcel() {
                        // feature.properties.ms_ezor = colorMapById[id].value;
                       //  layer.value = colorMapById[id].color;
                         
-                      //  layer.value = colorMapById[id].value;
+                        layer.value = colorMapById[id].value;
                     }
                     drawnItems.addLayer(layer);
                 }
@@ -395,7 +539,7 @@ function loadNextExcel() {
     };
 
     readerJson.readAsText(structuredClone(polyFile));
-    map.flyTo({lng: 34.7818, lat: 32.0853},12.5);
+    map.flyTo({lng: 34.7818, lat: 32.0853},13);
     
 }
 
@@ -540,6 +684,86 @@ document.addEventListener("DOMContentLoaded", function () {
                 .join("")
         );
     }
+});
+var legendControl = L.control({ position: 'bottomright' });
+
+legendControl.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'info legend');
+    div.style.backgroundColor = 'white';
+    div.style.padding = '10px';
+    div.style.border = '1px solid #ccc';
+    div.style.borderRadius = '8px';
+    div.style.boxShadow = '0 0 10px rgba(0,0,0,0.2)';
+    div.style.maxHeight = '300px';
+    div.style.overflowY = 'auto';
+    div.innerHTML = '<strong>מקרא</strong><br><div id="mapLegendContent"></div>';
+    return div;
+};
+
+legendControl.addTo(map);
+var legendVisible = true;
+
+var toggleLegendControl = L.control({ position: 'bottomleft' });
+
+toggleLegendControl.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'leaflet-bar');
+    var button = L.DomUtil.create('a', '', div);
+    button.href = '#';
+    button.title = 'הצג/הסתר מקרא';
+    button.innerHTML = '🛈'; // או אפשר לשים "?" או "ℹ️"
+
+    L.DomEvent.on(button, 'click', function (e) {
+        L.DomEvent.stopPropagation(e);
+        L.DomEvent.preventDefault(e);
+
+        var legend = document.querySelector('.legend');
+        if (legend) {
+            legend.style.display = legendVisible ? 'none' : 'block';
+            legendVisible = !legendVisible;
+        }
+    });
+
+    return div;
+};
+
+toggleLegendControl.addTo(map);
+
+document.getElementById('saveMapBtn').addEventListener('click', function ()
+{
+    leafletImage(map, function (err, mapCanvas)
+    {
+        if (err)
+        {
+        console.error('שגיאה ביצירת תמונה מהמפה:', err);
+        return;
+        }
+
+      // לצלם את המקרא
+        html2canvas(document.querySelector('.legend')).then(function (legendCanvas)
+        {
+                const finalCanvas = document.createElement('canvas');
+                finalCanvas.width = mapCanvas.width;
+                finalCanvas.height = mapCanvas.height;
+
+                const ctx = finalCanvas.getContext('2d');
+
+                // לצייר את המפה
+                ctx.drawImage(mapCanvas, 0, 0);
+
+                // למקם את המקרא בפינה השמאלית-תחתונה (כיוון שמאלי)
+                const margin = 20;
+                const x = finalCanvas.width - legendCanvas.width - margin;
+                const y = finalCanvas.height - legendCanvas.height - margin;
+
+                ctx.drawImage(legendCanvas, x, y);
+
+                // הורדת התמונה
+                const link = document.createElement('a');
+                link.download = 'map_with_legend.png';
+                link.href = finalCanvas.toDataURL();
+                link.click();
+        });
+    });
 });
 
     </script>
