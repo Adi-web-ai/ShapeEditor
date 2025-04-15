@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="he">
 <head>
@@ -34,12 +33,16 @@
 
   .map-container {
     grid-column: 1 / 2; /* תופס את העמודה הראשונה */
-    border-right: 1px solid #ccc;
+    border: 10px solid #ffffff;
+  /*  box-shadow: 10px 10px 5px grey;*/
+  /*  box-shadow: rgba(0, 0, 0, 0.15) 10px 10px 10px;*/
   }
 
   #map {
     width: 100%;
     height: 100%;
+    border: #0056b3;
+    box-shadow: rgba(14, 13, 13, 0.608) 10px 10px 10px;
   }
 
   .controls-container {
@@ -47,15 +50,22 @@
     display: flex;
     flex-direction: column;
     padding: 20px;
+    background-color: #f4f0ed;
   }
 
   .controls-row {
     display: flex;
+    justify-content: center;
    /* justify-content: space-around; /* מפזר את הפקדים בשורה */
   /* gap:20px;*/
     margin-bottom: 10px;
   }
 
+.first-row{
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
   .control-button {
     padding: 10px 30px;
     border: 1px solid #ccc;
@@ -64,11 +74,22 @@
     background-color:  rgb(206, 13, 126);
     color:white;
     margin-right: 5px;
-    
+    font-weight: bold;
+   /* transition:background-color 30ms ;*/
+  }
+  .control-button:hover{
+    background-color: blue;
+    opacity: 0.7;
+    font-weight: bold;
+  }
+  .control-button:active{
+    opacity: 0.7;
   }
 .lbl{
     margin-right: 15px;
     margin-left: 15px;
+   
+
 }
   .tables-container {
     grid-column: 2 / 3; /* תופס את העמודה השנייה */
@@ -81,6 +102,8 @@
     border: 1px solid #ccc;
     border-collapse: collapse;
     margin-top: 10px;
+    
+    box-shadow: rgba(0, 0, 0, 0.15) 10px 10px 10px;
   }
 
   .table th, .table td {
@@ -140,17 +163,19 @@
           </div>
         </div>
 <div class="controls-container">
+<div class="first-row">
     <div class="controls-row" >
-    <label class="lbl" for="colorPicker">בחר צבע:</label>
-    <input type="color" id="colorPicker" value="#ff0000">
-    <label class="lbl"for="valueInput">הזן ערך:</label>
-    <input type="text" id="valueInput" placeholder="הכנס ערך">
+        <label class="lbl" for="colorPicker">בחר צבע:</label>
+        <input type="color" id="colorPicker" value="#ff0000">
+        <label class="lbl"for="valueInput">הזן ערך:</label>
+        <input type="text" id="valueInput" placeholder="הכנס ערך">
+    </div>
 </div>
 <div class="controls-row">
     <button class="control-button" onclick="downloadPolygons()">שמירת פוליגונים</button>
     <button class="control-button" onclick="downloadBuildingsData()">הורדת נתוני בניינים</button>
     <button class="control-button" onclick="downloadPolygonsToExcel()">הורדת פוליגונים לאקסל</button>
-    <button class="control-button"> <a href="main.html">Old Map</a></button>
+    <button class="control-button"> <a href="main.html" target="_blank" style="color:white">Old Map</a></button>
 </div>
 <div class="controls-row">
     <button class="control-button" onclick="loadNextExcel()">Next Excel</button>
@@ -162,23 +187,23 @@
     
       </div>
     
-    <label for="myCheck">Color:</label> 
+    <label for="myCheck" style = "margin:10px">Color:</label> 
 	<input type="checkbox" id="myCheck" onclick="myFunction()">
     
     <div class="file-upload">
     
         <input type="file" id="excelInput" accept=".xlsx" onchange="loadExcel()" multiple>
         <label for="excelInput" class="custom-button" >בחר קובץ</label>
-        <span id="file-name"></span>
+        <span id="Excel-file-name"></span>
     
       </div>
     
 </div>
 <div class="controls-row">
-    <button class="control-button" onclick="MoveToTelAviv()">זום תל אביב</button>
-    <button class="control-button" onclick="MoveToNorthTelAviv()">צפון תל אביב </button>    
-    <button class="control-button" onclick="MoveToCenterTelAviv()">מרכז תל אביב</button>
-    <button class="control-button" onclick="MoveToSouthTelAviv()">דרום תל אביב</button>
+    <button class="control-button" onclick="MoveToTelAviv()">זום ת"א</button>
+    <button class="control-button" onclick="MoveToNorthTelAviv()">צפון ת"א</button>    
+    <button class="control-button" onclick="MoveToCenterTelAviv()">מרכז ת"א</button>
+    <button class="control-button" onclick="MoveToSouthTelAviv()">דרום ת"א</button>
     <button class="control-button" id="saveMapBtn">שמור מפה עם מקרא</button>
 </div>
 <div class="controls-row" style = "gap:20px">
@@ -195,7 +220,7 @@
             <!-- טבלת ערכים -->
             <div>
                 <h1 style="color:blue;text-align:center;">מקרא</h1>
-                <table id="valuesTable" border="1" style="border-collapse: collapse; width: 300px;">
+                <table id="valuesTable" border="1" style="border-collapse: collapse; background: white; width: 300px;">
                     <thead>
                         <tr><th>NUM</th><th>MIKRA</th></tr>
                     </thead>
@@ -207,7 +232,7 @@
             <div>
                 <h1 style="color:blue;text-align:center;">טבלת פוליגונים</h1>
                 <div style="height: 600px; overflow-y: auto; border: 1px solid #ccc;">
-                    <table id="polygonTable" border="1" style="border-collapse: collapse; width:300px;">
+                    <table id="polygonTable" border="1" style="border-collapse: collapse; width:300px;background: white;">
                         <thead style="position: sticky; top: 0; background: white; z-index: 1;">
                             <tr><th>ID</th><th>VALUE</th></tr>
                         </thead>
@@ -429,6 +454,8 @@ function loadPolygons(event) {
     var file = event.target.files[0];
     polyFile =structuredClone(file);// file;
     if (!file) return;
+    const fileNameDisplay = document.getElementById('file-name');
+    fileNameDisplay.textContent =file.name;
     var reader = new FileReader();
     reader.onload = function (e) {
         var geojson = JSON.parse(e.target.result);
@@ -465,13 +492,14 @@ function loadNextExcel() {
         alert("חסר קובץ JSON או קובץ Excel");
         return;
     }
-
+    fileCounter++;
     if (fileCounter >= files.length) {
         fileCounter = 0;
     }
 
     clearMapLayers(); // מחיקת כל השכבות הקיימות
-
+    const fileNameDisplay = document.getElementById('Excel-file-name');
+    fileNameDisplay.textContent =files[fileCounter].name;
     // שלב 1: טען את הפוליגונים מחדש מה-JSON
     var readerJson = new FileReader();
     readerJson.onload = function (e) {
@@ -535,7 +563,7 @@ function loadNextExcel() {
             });
         };
         readerExcel.readAsArrayBuffer(excelFile);
-        fileCounter++;
+        
     };
 
     readerJson.readAsText(structuredClone(polyFile));
@@ -552,6 +580,9 @@ function loadExcel() {
     files = document.getElementById("excelInput").files;
     var file =structuredClone(files[0]) ;
     if (!file) return;
+    const fileNameDisplay = document.getElementById('Excel-file-name');
+    fileNameDisplay.textContent =file.name;
+
     var reader = new FileReader();
     reader.onload = function (e) {
         var data = new Uint8Array(e.target.result);
