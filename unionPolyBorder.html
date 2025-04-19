@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>איחוד פוליגונים</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            direction: rtl;
+        }
+        #map {
+            height: 90vh;
+        }
+        #controls {
+            padding: 10px;
+            background: #f0f0f0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        button {
+            padding: 5x 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <input type="file" id="fileInput" accept=".geojson,.json" />
+        <button id="Union" > אחד פוליגונים</button>
+        <button id="toggleOriginal" disabled>הצג פוליגונים מקוריים</button>
+        <button id="downloadUnion" disabled>הורד את האיחוד</button>
+        <button class="control-button"> <a href="loadMultiJson.html" target="_blank" >אחד קבצי json</a></button>
+        <input type="file" id="excelInput" accept=".xlsx" onchange="loadExcel()" >
+        <button id="processButton" disabled>סנן והורד פוליגונים</button>
+        <div id="message"></div>
+    </div>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        let geojsonData;
+        const processButton = document.getElementById('processButton');
+        const messageDiv = document.getElementById('message');
+
+        const map = L.map('map').setView([32.0853, 34.7818], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        let geoLayer = null;
+        let unionLayer = null;
+        let unionGeoJSON = null;
+        let originalVisible = false;
+
+        document.getElementById('fileInput').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                geojsonData = JSON.parse(e.target.result);
+                messageDiv.textContent = 'קובץ JSON/GeoJSON נטען בהצלחה.';
+                            processButton.disabled = false;
+              //  processGeoJSON(geojsonData);
+              geoLayer = L.geoJSON(geojsonData, {
+                style: { color: 'red', weight: 3, fillColor: 'blue' ,fillOpacity: 0.3 }
+            }).addTo(map);
+            };
+            reader.readAsText(file);
+        });
+        document.getElementById("Union").addEventListener("click", function() {
+            if(!geojsonData)return;
+            processGeoJSON(geojsonData);
+
+        });
+        const filterpoly=[];
+function loadExcel() {
+    
+    files = document.getElementById("excelInput").files;
+    var file =structuredClone(files[0]) ;
+    if (!file) return;
+  //  const fileNameDisplay = document.getElementById('Excel-file-name');
+    //fileNameDisplay.textContent =file.name;
+
+    var reader = new FileReader();
+    reader.onload = function (e) {
+        var data = new Uint8Array(e.target.result);
+        var workbook = XLSX.read(data, { type: 'array' });
+        var sheet = workbook.Sheets[workbook.SheetNames[0]];
+        var json = XLSX.utils.sheet_to_json(sheet);
+       
+        json.forEach(row => {
+            filterpoly.push(row.ID);
+        });
+        console.log("row " + filterpoly);
+    };
+    reader.readAsArrayBuffer(file);
+}
+processButton.addEventListener('click', function() {
+            if (!geojsonData) {
+                messageDiv.textContent = 'אנא בחר קובץ JSON/GeoJSON קודם.';
+                return;
+            }
+
+            const filteredFeatures = geojsonData.features.filter(feature => {
+                return feature.properties && filterpoly.includes(feature.properties.oid_ezor);
+            });
+
+            const filteredGeoJSON = {
+                type: 'FeatureCollection',
+                features: filteredFeatures
+            };
+
+            const jsonString = JSON.stringify(filteredGeoJSON, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'polygons_filtered.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            messageDiv.textContent = 'פוליגונים עם oid_ezor  סוננו והורדו כקובץ polygons_filtered.json.';
+        });
+        function processGeoJSON(data) {
+            // נקה שכבות קודמות
+            if (geoLayer) map.removeLayer(geoLayer);
+            if (unionLayer) map.removeLayer(unionLayer);
+            originalVisible = false;
+
+            // צור את שכבת המקור (כחול) אבל אל תוסיף אותה עדיין
+            geoLayer = L.geoJSON(data, {
+                style: { color: 'blue', weight: 1, fillOpacity: 0.3 }
+            });
+
+            // בצע איחוד
+            let features = data.type === "FeatureCollection" ? data.features : [data];
+            let union = null;
+            let counterOid_ezor = 0;
+            for (let feature of features) {
+                if (feature.geometry.type === "Polygon" || feature.geometry.type === "MultiPolygon") {
+                    if (!union) {
+                        union = feature;
+                    } else {
+                        try {
+                           
+                            union = turf.union(union, feature);
+                            
+                        } catch (e) {
+                            console.error("שגיאת איחוד:", e);
+                        }
+                    }
+                }
+            }
+
+            if (union) {
+                counterOid_ezor++;
+                union.properties.oid_ezor=counterOid_ezor;
+                unionGeoJSON = union;
+                unionLayer = L.geoJSON(union, {
+                    style: { color: 'red', weight: 2, fillOpacity: 0.5 }
+                }).addTo(map);
+
+                map.fitBounds(unionLayer.getBounds());
+
+                document.getElementById('toggleOriginal').disabled = false;
+                document.getElementById('downloadUnion').disabled = false;
+            } else {
+                alert("לא נמצאו פוליגונים תקינים לאיחוד.");
+            }
+        }
+
+        document.getElementById('toggleOriginal').addEventListener('click', function () {
+            if (!geoLayer) return;
+
+            if (originalVisible) {
+                map.removeLayer(geoLayer);
+                this.textContent = 'הצג פוליגונים מקוריים';
+            } else {
+                geoLayer.addTo(map);
+                this.textContent = 'הסתר פוליגונים מקוריים';
+            }
+
+            originalVisible = !originalVisible;
+        });
+
+        document.getElementById('downloadUnion').addEventListener('click', function () {
+            if (!unionGeoJSON) return;
+
+            const blob = new Blob([JSON.stringify(unionGeoJSON, null, 2)], { type: "application/geo+json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "union.geojson";
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+    </script>
+</body>
+</html>

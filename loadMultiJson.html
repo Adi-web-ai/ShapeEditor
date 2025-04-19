@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8" />
+  <title>מיזוג קבצי JSON</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      direction: rtl;
+      text-align: center;
+      padding: 20px;
+      background-color: #f0f0f0;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    input[type="file"] {
+      margin: 20px 0;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #0078D7;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #005a9e;
+    }
+
+    #output {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>מיזוג קבצי GeoJSON</h1>
+  <input type="file" id="fileInput" multiple accept=".*json" />
+  <br />
+  <button onclick="mergeFiles()">מזג קבצים</button>
+  <div id="output"></div>
+
+  <script>
+    function mergeFiles() {
+      const input = document.getElementById('fileInput');
+      const files = input.files;
+
+      if (files.length === 0) {
+        alert("אנא בחר לפחות קובץ אחד.");
+        return;
+      }
+
+      let mergedFeatures = [];
+
+      let filesProcessed = 0;
+      let counter = 0 ;
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            const json = JSON.parse(e.target.result);
+            counter++;
+            json.properties.oid_ezor=counter;
+            
+            console.log("id " + Object.getOwnPropertyNames(json))
+            if (json.type === "Feature") {
+               
+                
+              mergedFeatures.push(json);
+            } else if (json.type === "FeatureCollection") {
+                
+              mergedFeatures.push(...json.features);
+            } else {
+              alert(`הקובץ "${file.name}" אינו קובץ GeoJSON תקני.`);
+            }
+
+          } catch (err) {
+            alert("שגיאה בקריאת הקובץ: " + file.name);
+          }
+
+          filesProcessed++;
+          if (filesProcessed === files.length) {
+            const mergedGeoJSON = {
+              type: "FeatureCollection",
+              features: mergedFeatures
+            };
+
+            const blob = new Blob([JSON.stringify(mergedGeoJSON, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "merged.geojson";
+            a.textContent = "הורד קובץ ממוזג";
+            a.style.display = "block";
+            a.style.marginTop = "20px";
+
+            const outputDiv = document.getElementById("output");
+            outputDiv.innerHTML = "";
+            outputDiv.appendChild(a);
+          }
+        };
+
+        reader.readAsText(file);
+      });
+    }
+  </script>
+</body>
+</html>
