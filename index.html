@@ -633,6 +633,22 @@ function loadNextExcel() {
                         layer.value = colorMapById[id].value;
                     }
                     drawnItems.addLayer(layer);
+                    layer.on('dblclick', function () {
+                        createEditPopup(layer);
+                    });
+
+                // בניית תוכן יפה לפופאפ
+                let content = '<b>מאפייני הפוליגון:</b><br><ul>';
+                for (const key in feature.properties) {
+                    content += `<li><b>${key}:</b> ${feature.properties[key]}</li>`;
+                }
+                content += '</ul>';
+
+         //      layer.bindPopup(content); // קישור הפופאפ
+               layer.on('click', function () {
+    document.getElementById("popcontent").innerHTML=content;
+});
+           
                 }
             });
         };
