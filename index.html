@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="he">
 <head>
@@ -164,6 +165,9 @@
         </div>
 <div class="controls-container">
 <div class="first-row">
+<div class="controls-row" >
+<h1>Tel-Aviv Map</h1><h3 style="padding: 15px;">By Adi Shamir</h3>
+</div>
     <div class="controls-row" >
         <label class="lbl" for="colorPicker">בחר צבע:</label>
         <input type="color" id="colorPicker" value="#ff0000">
@@ -208,9 +212,9 @@
     <button class="control-button" onclick="MoveToSouthTelAviv()">דרום ת"א</button>
     <button class="control-button" id="saveMapBtn">שמור מפה עם מקרא</button>
 </div>
-<div class="controls-row" style = "gap:20px">
+<div class="controls-row" >
     	<div id="lat"></div>
-        <div id="lon"> </div>
+        <div id="lon" style = "margin-left:20px"> </div>
     
     
 </div>  
@@ -242,6 +246,7 @@
                     </table>
                 </div>
             </div>
+            <div id="popcontent"></div>
         </div>
         
     
@@ -476,13 +481,79 @@ function loadPolygons(event) {
                 
             },
             onEachFeature: function (feature, layer) {
-                drawnItems.addLayer(layer);
+                drawnItems.addLayer(layer); // הוספה ל-featureGroup
+layer.on('dblclick', function () {
+    createEditPopup(layer);
+});
+
+                // בניית תוכן יפה לפופאפ
+                let content = '<b>מאפייני הפוליגון:</b><br><ul>';
+                for (const key in feature.properties) {
+                    content += `<li><b>${key}:</b> ${feature.properties[key]}</li>`;
+                }
+                content += '</ul>';
+
+         //      layer.bindPopup(content); // קישור הפופאפ
+               layer.on('click', function () {
+    document.getElementById("popcontent").innerHTML=content;
+});
             }
-            
-        }).addTo(drawnItems);
+        });
     };
-    
     reader.readAsText(file);
+}
+function createEditPopup(layer) {
+    const props = layer.feature.properties || {};
+    let formHtml = `<b>עריכת מאפיינים:</b><br><form id="editForm">`;
+    
+    for (const key in props) {
+        formHtml += `
+            <label>${key}: <input name="${key}" value="${props[key]}"></label><br>
+        `;
+    }
+
+    // אפשרות להוסיף מאפיין חדש
+    formHtml += `
+        <label>🆕 מפתח חדש: <input name="newKey" placeholder="key"></label><br>
+        <label>ערך חדש: <input name="newValue" placeholder="value"></label><br>
+        <button type="submit">💾 שמור</button>
+    </form>`;
+
+    layer.bindPopup(formHtml).openPopup();
+document.getElementById("popcontent").innerHTML=formHtml
+    setTimeout(() => {
+        const form = document.getElementById('editForm');
+        if (form) {
+            form.onsubmit = function (e) {
+                e.preventDefault();
+
+                // עדכון ערכים קיימים
+                const data = new FormData(form);
+                for (const [key, value] of data.entries()) {
+                    if (key !== "newKey" && key !== "newValue") {
+                        layer.feature.properties[key] = value;
+                    }
+                }
+
+                // הוספת ערך חדש אם יש
+                const newKey = data.get("newKey");
+                const newValue = data.get("newValue");
+                if (newKey && newValue) {
+                    layer.feature.properties[newKey] = newValue;
+                }
+
+                // סגירת הפופאפ והצגת מאפיינים מעודכנים
+                layer.closePopup();
+
+                let updatedContent = '<b>מאפייני הפוליגון:</b><br><ul>';
+                for (const key in layer.feature.properties) {
+                    updatedContent += `<li><b>${key}:</b> ${layer.feature.properties[key]}</li>`;
+                }
+                updatedContent += '</ul>';
+                layer.bindPopup(updatedContent);
+            };
+        }
+    }, 100); // delay קטן כדי לוודא שה-DOM נטען
 }
 //drawnItems.eachLayer(layer => { layer.bindPopup( 'layer.value' ); });
 //.bindPopup(popupContent).openPopup();
