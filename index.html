@@ -519,7 +519,7 @@ function createEditPopup(layer) {
         <button type="submit">💾 שמור</button>
     </form>`;
 
-    layer.bindPopup(formHtml).openPopup();
+   // layer.bindPopup(formHtml).openPopup();
 document.getElementById("popcontent").innerHTML=formHtml
     setTimeout(() => {
         const form = document.getElementById('editForm');
@@ -543,14 +543,15 @@ document.getElementById("popcontent").innerHTML=formHtml
                 }
 
                 // סגירת הפופאפ והצגת מאפיינים מעודכנים
-                layer.closePopup();
+            //    layer.closePopup();
 
                 let updatedContent = '<b>מאפייני הפוליגון:</b><br><ul>';
                 for (const key in layer.feature.properties) {
                     updatedContent += `<li><b>${key}:</b> ${layer.feature.properties[key]}</li>`;
                 }
                 updatedContent += '</ul>';
-                layer.bindPopup(updatedContent);
+            //    layer.bindPopup(updatedContent);
+            document.getElementById("popcontent").innerHTML=formHtml
             };
         }
     }, 100); // delay קטן כדי לוודא שה-DOM נטען
