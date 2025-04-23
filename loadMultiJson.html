@@ -64,16 +64,19 @@
         reader.onload = function(e) {
           try {
             const json = JSON.parse(e.target.result);
+          //  counter++;
+          //  json.properties.oid_ezor=counter;
+            
+           // console.log("id " + Object.getOwnPropertyNames(json))
+            if (json.type === "Feature") {
             counter++;
             json.properties.oid_ezor=counter;
-            
-            console.log("id " + Object.getOwnPropertyNames(json))
-            if (json.type === "Feature") {
-               
-                
+          
+           //console.log("Feature id " + Object.getOwnPropertyNames(json))
               mergedFeatures.push(json);
             } else if (json.type === "FeatureCollection") {
-                
+            
+            //console.log(" FeatureCollection id " + Object.getOwnPropertyNames(json))
               mergedFeatures.push(...json.features);
             } else {
               alert(`הקובץ "${file.name}" אינו קובץ GeoJSON תקני.`);
