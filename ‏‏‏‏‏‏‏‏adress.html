@@ -20,7 +20,7 @@
     
     <div id="controls">
     	<input type="file" id="excelFile" accept=".xlsx, .xls" />
-        <label id="roudnumber"></label>
+        <label id="roudnumber" style="margin: 30px ; color:DodgerBlue;"></label>
         <label for="startSelect">בחר נקודת התחלה:</label>
         <select id="startSelect"></select>
         <button id="downloadExcel">הורד כתובות ממויינות</button>
@@ -142,7 +142,7 @@
                         const result = await geocode(addr);
                         if (result) geoPoints.push(result);
                         await new Promise(res => setTimeout(res, 1000));
-                        document.getElementById("roudnumber").innerHTML = idx +" " + addr + " ";
+                        document.getElementById("roudnumber").innerHTML = idx +" - " + addr + " ";
                 idx++;
                     }
                     const startSelect = document.getElementById('startSelect');
