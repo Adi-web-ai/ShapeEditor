@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
     <style>
         body { font-family: Arial; direction: rtl; padding: 20px; }
-        #map { height: 500px; margin-top: 20px; }
+        #map { height: 700px; margin-top: 20px; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ccc; padding: 8px; text-align: right; }
         #controls { margin-top: 10px; }
@@ -16,12 +16,16 @@
 </head>
 <body>
     <h2>מיון כתובות בתל אביב לפי מסלול קצר ביותר</h2>
-    <input type="file" id="excelFile" accept=".xlsx, .xls" />
+    
     <div id="controls">
+    	<input type="file" id="excelFile" accept=".xlsx, .xls" />
         <label for="startSelect">בחר נקודת התחלה:</label>
         <select id="startSelect"></select>
         <button id="downloadExcel">הורד כתובות ממויינות</button>
+        <button class="control-button"type="button" onclick="window.open('Find the Shortest Route 3.html', '_blank');">100 כתובות</button>
     </div>
+     
+
     <div id="map"></div>
     <table id="addressTable">
         <thead><tr><th>#</th><th>כתובת</th><th>קו רוחב</th><th>קו אורך</th><th>מרחק (ק"מ)</th></tr></thead>
