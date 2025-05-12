@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="he">
 <head>
@@ -11,7 +12,7 @@
         #map { height: 700px; margin-top: 20px; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ccc; padding: 8px; text-align: right; }
-        #controls { margin-top: 10px; }
+        #controls { margin: 20px; directin:flex }
     </style>
 </head>
 <body>
@@ -19,6 +20,7 @@
     
     <div id="controls">
     	<input type="file" id="excelFile" accept=".xlsx, .xls" />
+        <label id="roudnumber"></label>
         <label for="startSelect">בחר נקודת התחלה:</label>
         <select id="startSelect"></select>
         <button id="downloadExcel">הורד כתובות ממויינות</button>
@@ -135,10 +137,13 @@
                     const jsonData = XLSX.utils.sheet_to_json(sheet);
                     const addresses = jsonData.map(row => row['כתובת']).filter(Boolean);
                     geoPoints = [];
+                    let idx =0;
                     for (const addr of addresses) {
                         const result = await geocode(addr);
                         if (result) geoPoints.push(result);
                         await new Promise(res => setTimeout(res, 1000));
+                        document.getElementById("roudnumber").innerHTML = idx +" " + addr + " ";
+                idx++;
                     }
                     const startSelect = document.getElementById('startSelect');
                     startSelect.innerHTML = geoPoints.map((p, i) => `<option value="${i}">${p.address}</option>`).join('');
