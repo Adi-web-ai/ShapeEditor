@@ -1,41 +1,189 @@
 <!DOCTYPE html>
-<html lang="he">
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>מיון כתובות לפי קירבה</title>
+    <title>מיון כתובות בתל אביב</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
     <style>
-        body { font-family: Arial; direction: rtl; padding: 20px; }
-        #map { height: 700px; margin-top: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: right; }
-        #controls { margin: 20px; directin:flex }
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            padding: 20px;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+
+        h2 {
+            text-align: center;
+            color: #007bff;
+            margin-bottom: 30px;
+        }
+
+        #controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        input[type="text"], select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            min-width: 180px;
+        }
+
+        .custom-button {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: nowrap;
+        }
+
+        .custom-button:hover {
+            background-color: #0056b3;
+        }
+
+        .file-upload {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .file-upload input[type="file"] {
+            position: absolute;
+            font-size: 100px;
+            opacity: 0;
+            right: 0;
+            top: 0;
+            cursor: pointer;
+        }
+
+        .file-upload label.custom-button {
+            display: inline-block;
+            padding: 10px 15px;
+            border-radius: 6px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+            font-size: 14px;
+            line-height: 1.5;
+            transition: background-color 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .file-upload label.custom-button:hover {
+            background-color: #0056b3;
+        }
+
+        #file-name {
+            font-style: italic;
+            color: #555;
+            margin-right: 5px;
+        }
+
+        #map {
+            height: 600px;
+            margin-bottom: 30px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        @media (max-width: 768px) {
+            #controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            input[type="text"], select {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
     <h2>מיון כתובות בתל אביב לפי מסלול קצר ביותר</h2>
-    
+
     <div id="controls">
-    	<label>הכנס כתובת :</label>
-        <input type="text" id="inputAdress"/>
-    	<button id="addAdress" onclick="addAdressToArray()">עדכן</button>
-        <button id="run" onclick="runAdress()">חשב מסלול</button>
-        <input type="file" id="excelFile" accept=".xlsx, .xls" />
-        <label id="roudnumber" style="margin: 30px ; color:DodgerBlue;"></label>
+        <label>הכנס כתובת:</label>
+        <input type="text" id="inputAdress" />
+        <button id="addAdress" class="custom-button" onclick="addAdressToArray()">עדכן</button>
+        <button id="run" class="custom-button" onclick="runAdress()">חשב מסלול</button>
+
+        <div class="file-upload">
+            <input type="file" id="excelFile" accept=".xlsx" />
+            <label for="excelFile" class="custom-button">בחר קובץ</label>
+        </div>
+        <span id="file-name"></span>
+
+        <label id="roudnumber" style="color:DodgerBlue;"></label>
         <label for="startSelect">בחר נקודת התחלה:</label>
         <select id="startSelect"></select>
-        <button id="downloadExcel">הורד כתובות ממויינות</button>
-        <button class="control-button"type="button" onclick="window.open('Find the Shortest Route 3.html', '_blank');">100 כתובות</button>
+        <button id="downloadExcel" class="custom-button">הורד כתובות ממויינות</button>
+        <button class="custom-button" onclick="window.open('Find the Shortest Route 3.html', '_blank');">100 כתובות</button>
     </div>
-     
 
     <div id="map"></div>
+
     <table id="addressTable">
-        <thead><tr><th>#</th><th>כתובת</th><th>קו רוחב</th><th>קו אורך</th><th>מרחק (ק"מ)</th></tr></thead>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>כתובת</th>
+                <th>קו רוחב</th>
+                <th>קו אורך</th>
+                <th>מרחק (ק"מ)</th>
+            </tr>
+        </thead>
         <tbody></tbody>
     </table>
+
 
     <script>
         const mapContainer = document.getElementById('map');
