@@ -145,7 +145,7 @@ let address = document.getElementById('inputAdress').value;
   L.marker([geoPoints[idx].lat, geoPoints[idx].lon]).addTo(map)
                     .bindPopup(`${idx + 1}. ${geoPoints[idx].address}`);
                     idx++;
-
+ map.fitBounds(geoPoints);
 }
 function runAdress()
 {
