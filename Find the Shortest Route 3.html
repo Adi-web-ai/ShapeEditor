@@ -6,22 +6,156 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
 </head>
 <style>
-  body { font-family: Arial; direction: rtl; padding: 20px; }
-  #map { height: 500px; margin-top: 20px; }
-  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-  th, td { border: 1px solid #ccc; padding: 8px; text-align: right; }
-  #controls { margin-top: 10px; }
+body {
+  font-family: Arial, sans-serif;
+  direction: rtl;
+  padding: 20px;
+  background-color: #f5f7fa;
+  color: #333;
+}
+h2 {
+    text-align: center;
+    color: #007bff;
+    margin-bottom:20px;
+}
+#controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+.custom-button {
+    display: inline-block;
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-size: 14px;
+    line-height: 1.5;
+    white-space: nowrap;
+}
+
+.custom-button:hover {
+    background-color: #0056b3;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 12px;
+    text-align: right;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #007bff;
+    color: white;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+@media (max-width: 768px) {
+    #controls {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+  }
+.file-upload {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+}
+
+.file-upload input[type="file"] {
+    position: absolute;
+    font-size: 100px;
+    opacity: 0;
+    right: 0;
+    top: 0;
+    cursor: pointer;
+}
+
+.file-upload label.custom-button {
+    display: inline-block;
+    padding: 10px 15px;
+    border-radius: 6px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    font-size: 14px;
+    line-height: 1.5;
+    transition: background-color 0.3s ease;
+    white-space: nowrap;
+}
+
+.file-upload label.custom-button:hover {
+    background-color: #0056b3;
+}
+
+#file-name {
+    font-style: italic;
+    color: #555;
+    margin-right: 5px;
+}
+#map {
+    height: 600px;
+    margin-bottom: 30px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+  
+ 
 </style>
 <body>
 
-<h2>Find The Shortest Road</h2>
-<button id="nextRoad" onclick="NextRoad()">Next Road </button>
-<input type="file" id="excelFile" accept=".xlsx, .xls" />
+<h2>מסלולים ל-100 כתובות ב-10 ימים</h2>
+<div id="controls">
+<button id="nextRoad" class="custom-button" onclick="NextRoad()">Next Road </button>
+
+<div class="file-upload">
+    <input type="file" id="excelFile" accept=".xlsx" />
+    <label for="excelFile" class="custom-button">כתובות מקובץ</label>
+</div>
+<span id="file-name"></span>
 <p id="roudnumber"></p>
 <p id="adressnum"></p>
+</div>
 <div id="map"></div>
 
 <p id="idroad"></p>
+<table id="addressTable">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>כתובת</th>
+                <th>קו רוחב</th>
+                <th>קו אורך</th>
+                <th>מרחק (ק"מ)</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 <script>
   const mapContainer = document.getElementById('map');
         mapContainer.innerHTML = "";
@@ -37,6 +171,7 @@ async function geocode(address) {
 }
 
 document.getElementById('excelFile').addEventListener('change', async (e) => {
+  console.log("enter")
     const file = e.target.files[0];
     const reader = new FileReader();
     geoPoints = [];
@@ -58,7 +193,7 @@ document.getElementById('excelFile').addEventListener('change', async (e) => {
                 document.getElementById("roudnumber").innerHTML = idx +" " + addr + " ";// + result.latitude;
                 idx++;
             }
-           
+           document.getElementById("roudnumber").innerHTML = " Finish Load: "+ idx +" Adress Enter Next Road" ;
         } catch (err) {
             alert("שגיאה בקריאת הקובץ: " + err.message);
             
@@ -83,116 +218,7 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
 
 // דוגמה למערך כתובות כאשר לכל כתובת יש כתובת מיקום (latitude, longitude)
 let addresses=[];
-const addresses100 = [
-{address: "הכובשים 31 , תל אביב"  ,latitude: 34.7668152 , longitude: 32.0704411},
-{address: "עזרא הסופר 24 , תל אביב"  ,latitude: 34.7660418 , longitude: 32.0696072},
-{address: "נחמיה 24 , תל אביב"  ,latitude: 34.7655648 , longitude: 32.0689469},
-{address: "יפת 9 , תל אביב"  ,latitude: 34.7558771 , longitude: 32.0542446},
-{address: "יפת 11 , תל אביב"  ,latitude: 34.7555177 , longitude: 32.0540264},
-{address: "עולי ציון 2 , תל אביב"  ,latitude: 34.7557216 , longitude: 32.0540491},
-{address: "בן יהודה 14 , תל אביב"  ,latitude: 34.7682818 , longitude: 32.0747346},
-{address: "דיזנגוף 129 , תל אביב"  ,latitude: 34.7736379 , longitude: 32.0819363},
-{address: "קוסובסקי 73 , תל אביב"  ,latitude: 34.8057304 , longitude: 32.0985848},
-{address: "אילת 35 , תל אביב"  ,latitude: 34.7638256 , longitude: 32.0580002},
-{address: "הברזל 26 , תל אביב"  ,latitude: 34.8407097 , longitude: 32.1094418},
-{address: "יד חרוצים 13 , תל אביב"  ,latitude: 34.783623 , longitude: 32.0619564},
-{address: "פרישמן 37 , תל אביב"  ,latitude: 34.7732386 , longitude: 32.0798596},
-{address: "פרישמן 32 , תל אביב"  ,latitude: 34.7734773 , longitude: 32.0796822},
-{address: "י. ל. גורדון 34 , תל אביב"  ,latitude: 34.7723676 , longitude: 32.0819426},
-{address: "בן יהודה 128 , תל אביב"  ,latitude: 34.772513 , longitude: 32.0847177},
-{address: "דיזנגוף 206 , תל אביב"  ,latitude: 34.7750391 , longitude: 32.0867611},
-{address: "יוסף קארו 10א , תל אביב"  ,latitude: 34.7902994 , longitude: 32.0707047},
-{address: "אבן גבירול 13 , תל אביב"  ,latitude: 34.7816701 , longitude: 32.0724574},
-{address: "אבן גבירול 14 , תל אביב"  ,latitude: 34.7820436 , longitude: 32.0727428},
-{address: "דיזנגוף 308 , תל אביב"  ,latitude: 34.7765482 , longitude: 32.0949264},
-{address: "דיזנגוף 267 , תל אביב"  ,latitude: 34.7763527 , longitude: 32.0949197},
-{address: "דיזנגוף 267 , תל אביב"  ,latitude: 34.776342 , longitude: 32.0949833},
-{address: "דיזנגוף 265 , תל אביב"  ,latitude: 34.7764309 , longitude: 32.094709},
-{address: "הארבעה 2 , תל אביב"  ,latitude: 34.7829342 , longitude: 32.0703169},
-{address: "הארבעה 10 , תל אביב"  ,latitude: 34.7835904 , longitude: 32.0702709},
-{address: "אבן גבירול 21 , תל אביב"  ,latitude: 34.78161 , longitude: 32.0733678},
-{address: "דיזנגוף 121 , תל אביב"  ,latitude: 34.7736143 , longitude: 32.0809459},
-{address: "אבן גבירול 12 , תל אביב"  ,latitude: 34.7821062 , longitude: 32.0723768},
-{address: "דרך יפו 19 , תל אביב"  ,latitude: 34.77092 , longitude: 32.060689},
-{address: "יפו 13 , תל אביב"  ,latitude: 34.7700189 , longitude: 32.060539},
-{address: "יפו 6 , תל אביב"  ,latitude: 34.7689041 , longitude: 32.0601889},
-{address: "אילת 52 , תל אביב"  ,latitude: 34.7664151 , longitude: 32.0590303},
-{address: "אילת 24 , תל אביב"  ,latitude: 34.764074 , longitude: 32.057911},
-{address: "אבן גבירול 38 , תל אביב"  ,latitude: 34.7813255 , longitude: 32.0761032},
-{address: "אבן גבירול 22 , תל אביב"  ,latitude: 34.7820021 , longitude: 32.0740824},
-{address: "אשתורי הפרחי 14 , תל אביב"  ,latitude: 34.7802331 , longitude: 32.0899506},
-{address: "שלמה המלך 38 , תל אביב"  ,latitude: 34.7770975 , longitude: 32.0795431},
-{address: "דיזנגוף 98 , תל אביב"  ,latitude: 34.7740419 , longitude: 32.0787561},
-{address: "אבן גבירול 98 , תל אביב"  ,latitude: 34.7816004 , longitude: 32.0832269},
-{address: "אלקלעי 5 , תל אביב"  ,latitude: 34.7800214 , longitude: 32.0909139},
-{address: "ישעיהו 1 , תל אביב"  ,latitude: 34.7784857 , longitude: 32.0951459},
-{address: "בוגרשוב 87 , תל אביב"  ,latitude: 34.7749665 , longitude: 32.0743704},
-{address: "מרכז בעלי מלאכה 13 , תל אביב"  ,latitude: 34.7725288 , longitude: 32.0699781},
-{address: "שדרות רוטשילד 37 , תל אביב"  ,latitude: 34.7738712 , longitude: 32.0639619},
-{address: "שדרות רוטשילד 39 , תל אביב"  ,latitude: 34.7735574 , longitude: 32.0639026},
-{address: "יהודה הלוי 187 , תל אביב"  ,latitude: 34.781668 , longitude: 32.0709901},
-{address: "דיזינגוף 306 , תל אביב"  ,latitude: 34.7765829 , longitude: 32.0947442},
-{address: "בן יהודה 221 , תל אביב"  ,latitude: 34.7752212 , longitude: 32.0946444},
-{address: "בן יהודה 221 , תל אביב"  ,latitude: 34.7752426 , longitude: 32.0946603},
-{address: "דיזינגוף 293 , תל אביב"  ,latitude: 34.7757539 , longitude: 32.0970966},
-{address: "שדרות רוטשילד 140 , תל אביב"  ,latitude: 34.7794174 , longitude: 32.0716614},
-{address: "שדרות רוטשילד 6 , תל אביב"  ,latitude: 34.7698125 , longitude: 32.0627654},
 
-{address: "מנחם בגין 13 , תל אביב"  ,latitude: 34.7762154 , longitude: 32.0606634},
-{address: "קרליבך 23 , תל אביב"  ,latitude: 34.7829587 , longitude: 32.0688869},
-{address: "קרליבך 10 , תל אביב"  ,latitude: 34.7831904 , longitude: 32.06895},
-{address: "בוגרשוב 70 , תל אביב"  ,latitude: 34.7727782 , longitude: 32.0753106},
-{address: "הארבעה 19 , תל אביב"  ,latitude: 34.7868466 , longitude: 32.0704641},
-{address: "אבן גבירול 70 , תל אביב"  ,latitude: 34.7815429 , longitude: 32.0805999},
-{address: "אחד העם 64 , תל אביב"  ,latitude: 34.7752765 , longitude: 32.0648438},
-{address: "קינג גורג 28 , תל אביב"  ,latitude: 34.7739354 , longitude: 32.0720901},
-{address: "רוטשילד 15 , תל אביב"  ,latitude: 34.7711996 , longitude: 32.0632619},
-{address: "רוטשילד 29 , תל אביב"  ,latitude: 34.7727479 , longitude: 32.0636238},
-{address: "החשמונאים 113 , תל אביב"  ,latitude: 34.78497 , longitude: 32.0695717},
-{address: "ויטל חיים 1 , תל אביב"  ,latitude: 34.7679312 , longitude: 32.0570791},
-{address: "בן יהודה 186 , תל אביב"  ,latitude: 34.7736324 , longitude: 32.0884298},
-{address: "בן יהודה 186 , תל אביב"  ,latitude: 34.7736667 , longitude: 32.0885102},
-{address: "בן יהודה 171 , תל אביב"  ,latitude: 34.7737934 , longitude: 32.0897143},
-{address: "ראול ולנברג 24 , תל אביב"  ,latitude: 34.8389768 , longitude: 32.1109824},
-{address: "ראול ולנברג 24 , תל אביב"  ,latitude: 34.8392798 , longitude: 32.1113005},
-{address: "ראול ולנברג 24 , תל אביב"  ,latitude: 34.8394676 , longitude: 32.1112187},
-{address: "נחלת בנימין 45 , תל אביב"  ,latitude: 34.7709629 , longitude: 32.0647481},
-{address: "אבן גבירול 14 , תל אביב"  ,latitude: 34.7820436 , longitude: 32.0725779},
-{address: "אשתורי פרחי 20 , תל אביב"  ,latitude: 34.7802545 , longitude: 32.0900778},
-{address: "Ibn Gvirol 53 , תל אביב"  ,latitude: 34.7811268 , longitude: 32.0773984},
-{address: "בן יהודה 252 , תל אביב"  ,latitude: 34.7754439 , longitude: 32.0946481},
-{address: "אבן גבירול 64 , תל אביב"  ,latitude: 34.7815182 , longitude: 32.0797834},
-
-{address: "פרישמן 90 , תל אביב"  ,latitude: 34.7797523 , longitude: 32.0793622},
-{address: "מלכי ישראל 4 , תל אביב"  ,latitude: 34.7805265 , longitude: 32.0793752},
-{address: "אבן גבירול 61 , תל אביב"  ,latitude: 34.7811358 , longitude: 32.0786749},
-{address: "שדרות מסריק 14 , תל אביב"  ,latitude: 34.7792904 , longitude: 32.0791896},
-{address: "שאול המלך 4 , תל אביב"  ,latitude: 34.7821847 , longitude: 32.0752728},
-{address: "הכובשים 35 , תל אביב"  ,latitude: 34.7666171 , longitude: 32.0701692},
-{address: "הרב קוק 23 , תל אביב"  ,latitude: 34.7669815 , longitude: 32.0712386},
-{address: "הרב אהרונסון 31 , תל אביב"  ,latitude: 34.7667149 , longitude: 32.0706499},
-{address: "הכובשים 32 , תל אביב"  ,latitude: 34.7663739 , longitude: 32.0700313},
-{address: "הכובשים 36 , תל אביב"  ,latitude: 34.7661258 , longitude: 32.069785},
-{address: "הכובשים 38 , תל אביב"  ,latitude: 34.7660577 , longitude: 32.0695394},
-{address: "הכובשים 25 , תל אביב"  ,latitude: 34.7669399 , longitude: 32.0706701},
-{address: "הכובשים 33 , תל אביב"  ,latitude: 34.7667727 , longitude: 32.0703601},
-{address: "הכובשים 20 , תל אביב"  ,latitude: 34.7669061 , longitude: 32.0710027},
-{address: "הכובשים 24 , תל אביב"  ,latitude: 34.7667745 , longitude: 32.0706891},
-{address: "הכובשים 18 , תל אביב"  ,latitude: 34.7670391 , longitude: 32.071267},
-{address: "זרובבל 20 , תל אביב"  ,latitude: 34.7663512 , longitude: 32.0700711},
-{address: "הכובשים 21 , תל אביב"  ,latitude: 34.767101 , longitude: 32.0709906},
-{address: "הכובשים 23 , תל אביב"  ,latitude: 34.7670548 , longitude: 32.0708882},
-{address: "הכובשים 43 , תל אביב"  ,latitude: 34.7663087 , longitude: 32.0696373},
-{address: "הכובשים 47 , תל אביב"  ,latitude: 34.7661424 , longitude: 32.0694078},
-{address: "חיים חבשוש 1 , תל אביב"  ,latitude: 34.7661558 , longitude: 32.0693873},
-{address: "חיים חבשוש 2 , תל אביב"  ,latitude: 34.7660994 , longitude: 32.0693259},
-{address: "הכובשים 49 , תל אביב"  ,latitude: 34.7660389 , longitude: 32.0693007},
-{address: "הכובשים 53 , תל אביב"  ,latitude: 34.7659047 , longitude: 32.0690894},
-{address: "עזרא הסופר 17 , תל אביב"  ,latitude: 34.7660391 , longitude: 32.0697414},
-{address: "אלישיב 2 , תל אביב"  ,latitude: 34.7667405 , longitude: 32.0702578},
-
-  // המשך עד 100 כתובות...
-];
 
 // 1. קלאסטרינג עם K-means (חלוקה ל-10 קבוצות)
 function kMeans(points, k, maxIterations = 100) {
@@ -339,24 +365,33 @@ function ClearMap()
 function MakeCluster()
 {
   clusters = kMeans(addresses, 10);
+  let tbody = document.querySelector("#addressTable tbody");
+            tbody.innerHTML = "";
+            let row;
 // הפקת המסלולים עבור כל יום (קבוצה)
 clusters.forEach((cluster, index) => {
   // חשוב: ייתכן וזוהי לא חלוקה מדויקת של 10 כתובות לקבוצה, תלוי בפיזור
   const route = solveTSP(cluster);
- // displayOnMap1(route);
+ // displayOnMap1(route); 
   console.log(`מסלול יום ${index + 1}:`, route);
-  document.getElementById("idroad").innerHTML +=`מסלול יום ${index + 1}:  `+"<br>"
+  //document.getElementById("idroad").innerHTML +=`מסלול יום ${index + 1}:  `+"<br>"
   x=route;
+  row = `<tr><td>"מסלול יום ${index + 1}:  "</td></tr>`;
+  tbody.innerHTML += row;
+  let dist = 0 ;
    for(let i=0 ; i< x.length ; i++)
    {
-    document.getElementById("idroad").innerHTML += x[i].address + " " + x[i].latitude + "  ||  " + x[i].longitude + "<br>";
-   }
+    if(i>0){
+      dist = haversineDistance(x[i-1].latitude,x[i-1].longitude ,x[i].latitude,x[i].longitude);
+
+    }
+  //  document.getElementById("idroad").innerHTML += x[i].address + " " + x[i].latitude + "  ||  " + x[i].longitude + "<br>";
+   row = `<tr><td>${i}</td><td>${x[i].address}</td><td>${x[i].latitude.toFixed(6)}</td><td>${x[i].longitude.toFixed(6)}</td><td>${dist > 0 ? dist.toFixed(2) : '-'}</td></tr>`;
+                tbody.innerHTML += row;
+  }
   
 });
-
 }
-
-
 </script>
 
 </body>
